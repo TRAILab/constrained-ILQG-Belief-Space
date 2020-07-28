@@ -49,13 +49,13 @@ stDim = motionModel.stDim;
 % Extract robot state
 x = b(1:stDim,1);
 
-P = zeros(stDim, stDim); % covariance matrix
+
 
 % Extract columns of principal sqrt of covariance matrix
 % right now we are not exploiting symmetry
-for d = 1:stDim
-    P(:,d) = b(d*stDim+1:(d+1)*stDim, 1);
-end
+D = motionModel.D;
+vecP = D*b(stDim+1:end);
+P = reshape(vecP,stDim,stDim); % Covariance Matrix
 
 % update state
 processNoise = motionModel.zeroNoise; % 0 process noise
@@ -95,7 +95,9 @@ P_next = inv(P_next_inv);
 g_b_u = zeros(size(b));
 g_b_u(1:stDim,1) = x_next;
 
-g_b_u(stDim+1:end,1) = P_next(:);
+%Store diagonal and below of covariance matrix
+
+g_b_u(stDim+1:end,1) = motionModel.D_psuedoinv*P_next(:);
 
 % for d = 1:stDim
 %     g_b_u(d*stDim+1:(d+1)*stDim,1) = P_next(:,d);

@@ -13,6 +13,22 @@ classdef quadrotorPlanar < MotionModelBase
         eta_u = 0; % A coefficient, which makes the control noise intensity proportional to the control signal       
         zeroNoise = [0;0;0];
         ctrlLim = [-5.0 5.0;-5 5; -90*pi/180 90*pi/180]; % control limits
+        D = [1,0,0,0,0,0;
+             0,1,0,0,0,0;
+             0,0,1,0,0,0;
+             0,1,0,0,0,0;
+             0,0,0,1,0,0;
+             0,0,0,0,1,0;
+             0,0,1,0,0,0;
+             0,0,0,0,1,0;
+             0,0,0,0,0,1;]; % Duplication matrix for creating full vectorized covariance matrix from diagnoal and below elements
+         D_psuedoinv = [1,0,0,0,0,0,0,0,0;
+                        0,0.5,0,0.5,0,0,0,0,0;
+                        0,0,0.5,0,0,0,0.5,0,0;
+                        0,0,0,0,1,0,0,0,0;
+                        0,0,0,0,0,0.5,0,0.5,0;
+                        0,0,0,0,0,0,0,0,1;];
+            
      end
     
 

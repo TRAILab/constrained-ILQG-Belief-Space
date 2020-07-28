@@ -34,16 +34,16 @@ subplot(3,1,2)
 %Plot nominal belief and 3sig bound
 plot(t,b_nom(2,:) - roboTraj(2,:),'r-')
 hold on
-plot(t,3*sqrt(b_nom(8,:)),'r--')
-ph = plot(t,-3*sqrt(b_nom(8,:)),'r--');
+plot(t,3*sqrt(b_nom(7,:)),'r--')
+ph = plot(t,-3*sqrt(b_nom(7,:)),'r--');
 set(get(get(ph,'Annotation'),'LegendInformation'),'IconDisplayStyle','off');
 % legend({'$\tilde{x}$','$3 nominal \sigma$ bounds'},'Interpreter','Latex')
 
 %Plot actual belief and 3sig bound
 plot(t,b_traj_t(2,:) - roboTraj(2,:),'b-')
 hold on
-plot(t,3*sqrt(b_traj_t(8,:)),'b--')
-ph = plot(t,-3*sqrt(b_traj_t(8,:)),'b--');
+plot(t,3*sqrt(b_traj_t(7,:)),'b--')
+ph = plot(t,-3*sqrt(b_traj_t(7,:)),'b--');
 set(get(get(ph,'Annotation'),'LegendInformation'),'IconDisplayStyle','off');
 % legend({'$\tilde{x}$','$3 nominal \sigma$ bounds','$\hat{x}$','$3 actual \sigma$ bounds'},'Interpreter','Latex')
 legend({'$\tilde{e}_y$','nominal $3\sigma$ bounds','$\hat{e}_y$','actual $3\sigma$ bounds'},'Interpreter','Latex')
@@ -55,16 +55,16 @@ subplot(3,1,3)
 %Plot nominal belief and 3sig bound
 plot(t,wrapToPi(b_nom(3,:) - roboTraj(3,:)),'r-')
 hold on
-plot(t,3*sqrt(b_nom(12,:)),'r--')
-ph = plot(t,-3*sqrt(b_nom(12,:)),'r--');
+plot(t,3*sqrt(b_nom(9,:)),'r--')
+ph = plot(t,-3*sqrt(b_nom(9,:)),'r--');
 set(get(get(ph,'Annotation'),'LegendInformation'),'IconDisplayStyle','off');
 % legend({'$\tilde{x}$','$3 nominal \sigma$ bounds'},'Interpreter','Latex')
 
 %Plot actual belief and 3sig bound
 plot(t,wrapToPi(b_traj_t(3,:) - roboTraj(3,:)),'b-')
 hold on
-plot(t,3*sqrt(b_traj_t(12,:)),'b--')
-ph = plot(t,-3*sqrt(b_traj_t(12,:)),'b--');
+plot(t,3*sqrt(b_traj_t(9,:)),'b--')
+ph = plot(t,-3*sqrt(b_traj_t(9,:)),'b--');
 set(get(get(ph,'Annotation'),'LegendInformation'),'IconDisplayStyle','off');
 % legend({'$\tilde{x}$','$3 nominal \sigma$ bounds','$\hat{x}$','$3 actual \sigma$ bounds'},'Interpreter','Latex')
 legend({'$\tilde{e}_x$','nominal $3\sigma$ bounds','$\hat{e}_x$','actual $3\sigma$ bounds'},'Interpreter','Latex')

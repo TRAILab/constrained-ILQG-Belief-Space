@@ -6,6 +6,9 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 function main
+close all
+clear all
+clc
 % add subfolders to path
 % addpath(genpath('./'));
 fname = 'course2dhard2';

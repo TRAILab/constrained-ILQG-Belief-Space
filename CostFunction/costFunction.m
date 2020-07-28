@@ -1,4 +1,4 @@
-function c = costFunction(b, u, goal, L, stDim, stateValidityChecker, map, varargin)
+function c = costFunction(b, u, goal, L, stDim, stateValidityChecker, map, D, varargin)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Compute cost for vector of states according to cost model given in Section 6 
 % of Van Den Berg et al. IJRR 2012
@@ -18,15 +18,15 @@ c = zeros(1,size(b,2));
 
 for i=1:size(b,2)
     if isempty(varargin)
-        c(i) =  evaluateCost(b(:,i),u(:,i), goal, stDim, L, stateValidityChecker,map);
+        c(i) =  evaluateCost(b(:,i),u(:,i), goal, stDim, L, stateValidityChecker,map, D);
     else
-        c(i) =  evaluateCost(b(:,i),u(:,i), goal, stDim, L, stateValidityChecker, map,varargin{1});
+        c(i) =  evaluateCost(b(:,i),u(:,i), goal, stDim, L, stateValidityChecker, map, D, varargin{1});
     end
 end
 
 end
 
-function cost = evaluateCost(b, u, goal, stDim, L, stateValidityChecker, map,varargin)
+function cost = evaluateCost(b, u, goal, stDim, L, stateValidityChecker, map,D, varargin)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Compute cost for a states according to cost model given in Section 6 
 % of Van Den Berg et al. IJRR 2012
@@ -49,13 +49,8 @@ ctrlDim = size(u,1);
 
 x = b(1:stDim,1);
 
-P = zeros(stDim, stDim); % covariance matrix
-
-% Extract columns of principal sqrt of covariance matrix
-% right now we are not exploiting symmetry
-for d = 1:stDim
-    P(:,d) = b(d*stDim+1:(d+1)*stDim, 1);
-end
+vecP = D*b(stDim+1:end);
+P = reshape(vecP,stDim,stDim); % Covariance Matrix
 
 Q_t = 300*eye(stDim); % penalize uncertainty
 R_t = 2*eye(ctrlDim); % penalize control effort
@@ -89,11 +84,11 @@ if any(final)
     
   sc = delta_x'*Q_l*delta_x;
   
-  ic = trace(P*Q_t*P);
+  ic = trace(P*Q_t);
   
 else
       
-  ic = trace(P*Q_t*P);
+  ic = trace(P*Q_t);
   
   uc = u'*R_t*u;
   
@@ -116,14 +111,14 @@ if ~isempty(varargin)
   if varargin{1} == 1
 %     nSigma = sigmaToCollideAll(b,stDim,stateValidityChecker,map);
 %     cc = sum(exp(-nSigma));
-    nSigma = sigmaToCollide(b,stDim,stateValidityChecker);
+    nSigma = sigmaToCollide(b,stDim,D,stateValidityChecker);
     cc = log(chi2cdf(nSigma^2, stDim-1));   
 
   end
 else
 %   nSigma = sigmaToCollideAll(b,stDim,stateValidityChecker,map);
 %   cc = sum(exp(-nSigma));
-    nSigma = sigmaToCollide(b,stDim,stateValidityChecker);
+    nSigma = sigmaToCollide(b,stDim,D,stateValidityChecker);
     cc = -log(chi2cdf(nSigma^2, stDim-1));
 end
   

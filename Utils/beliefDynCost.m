@@ -32,7 +32,7 @@ ctDim = motionModel.ctDim;
 
 if nargout == 2
     g = beliefDynamics(b, u, motionModel, obsModel);
-    c = costFunction(b, u, xf, L, motionModel.stDim, collisionChecker, map);
+    c = costFunction(b, u, xf, L, motionModel.stDim, collisionChecker, map, motionModel.D);
 else
     % belief state and control indices
     ib = 1:beliefDim;
@@ -63,15 +63,15 @@ else
     
     %% First derivative of sigmaToCollide (jacobian of sigma[b])
     tStart = tic;
-    xu_sigma =  @(x) sigmaToCollide(x, motionModel.stDim, collisionChecker);
+    xu_sigma =  @(x) sigmaToCollide(x, motionModel.stDim, motionModel.D,collisionChecker);
     dsigma_db  = squeeze(finiteDifference(xu_sigma, b,1e-2)); % need to have a large step size to see derivative in collision
     dsigma_db = [dsigma_db;zeros(motionModel.ctDim,size(dsigma_db,2))]; % jacobian w.r.t u is zero for collision
     
-    nSigma = sigmaToCollide(b, motionModel.stDim, collisionChecker);
+    nSigma = sigmaToCollide(b, motionModel.stDim, motionModel.D, collisionChecker);
     fprintf('Time to do sigma derivative and compute sigma: %f seconds\n', toc(tStart))
     
     %% cost first derivatives
-    xu_cost = @(xu) costFunction(xu(ib,:),xu(iu,:),xf,L,motionModel.stDim, collisionChecker,map,0);    
+    xu_cost = @(xu) costFunction(xu(ib,:),xu(iu,:),xf,L,motionModel.stDim, collisionChecker,map,motionModel.D,0);    
     J       = squeeze(finiteDifference(xu_cost, [b; u]));
     
     % construct Jacobian adding collision cost
@@ -86,7 +86,7 @@ else
     
     
     % first calculate Hessian excluding collision cost
-    xu_cost_nocc = @(xu) costFunction(xu(ib,:),xu(iu,:),xf,L,motionModel.stDim, collisionChecker,map,0);
+    xu_cost_nocc = @(xu) costFunction(xu(ib,:),xu(iu,:),xf,L,motionModel.stDim, collisionChecker,map,motionModel.D,0);
     xu_Jcst_nocc = @(xu) squeeze(finiteDifference(xu_cost_nocc, xu));    
     JJ      = finiteDifference(xu_Jcst_nocc, [b; u]);
     JJ      = 0.5*(JJ + permute(JJ,[2 1 3])); %symmetrize                      

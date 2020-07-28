@@ -15,6 +15,21 @@ classdef unicycle_robot < MotionModelBase
         angular_velocity_max = 90*pi/180; % degree per second (converted to radian per second)
         linear_velocity_max = 0.5*10;
         linear_velocity_min_on_orbit = unicycle_robot.turn_radius_min*unicycle_robot.angular_velocity_max; % note that on the straight line the minimum velocity can go to zero. But, in turnings (on orbit) the linear velocity cannot fall below this value.
+        D = [1,0,0,0,0,0;
+             0,1,0,0,0,0;
+             0,0,1,0,0,0;
+             0,1,0,0,0,0;
+             0,0,0,1,0,0;
+             0,0,0,0,1,0;
+             0,0,1,0,0,0;
+             0,0,0,0,1,0;
+             0,0,0,0,0,1;]; % Duplication matrix for creating full vectorized covariance matrix from diagnoal and below elements
+         D_psuedoinv = [1,0,0,0,0,0,0,0,0;
+                        0,0.5,0,0.5,0,0,0,0,0;
+                        0,0,0.5,0,0,0,0.5,0,0;
+                        0,0,0,0,1,0,0,0,0;
+                        0,0,0,0,0,0.5,0,0.5,0;
+                        0,0,0,0,0,0,0,0,1;];
      end
     
 
@@ -58,12 +73,12 @@ classdef unicycle_robot < MotionModelBase
             c = cos(x(3));
             s = sin(x(3));
             d_t = obj.dt;
-%             G = d_t.*[c, 0;
-%                        s, 0;
-%                        0, 1];
-            G = [c, 0;
-           s, 0;
-           0, 1];
+            G = d_t.*[c, 0;
+                       s, 0;
+                       0, 1];
+%             G = [c, 0;
+%            s, 0;
+%            0, 1];
         end
         
         function Q = getProcessNoiseCovariance(obj,x,u)

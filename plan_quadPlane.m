@@ -29,7 +29,7 @@ svc = @(x)isStateValid(x,map,0); % state validity checker (collision)
 x0 = map.start; % intial state
 P = 0.1*eye(3); % intial covariance
 % sqrtSigma0 = sqrtm(Sigma0);
-b0 = [x0;P(:)]; % initial belief state
+b0 = [x0;mm.D_psuedoinv*P(:)]; % initial belief state
 
 xf = map.goal; % target state
 
@@ -81,6 +81,7 @@ plotFn = @(x) set(line_handle,'Xdata',x(1,:),'Ydata',x(2,:));
 
 legend({'Features','Start','Goal','Mean trajectory with covariance ellipses'},'Interpreter','Latex')
 Op.plotFn = plotFn;
+Op.D = mm.D;
 
 %% === run the optimization
 % rh = [];

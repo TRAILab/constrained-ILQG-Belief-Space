@@ -1,4 +1,4 @@
-function drawResult(plotFn, b, stDim)
+function drawResult(plotFn, b, stDim,D)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Draw the trajectory and uncertainty ellipses
 %
@@ -23,12 +23,9 @@ sigmaScale = 3;
 % get covariances
 for i = itp
     
-    Sigma = zeros(stDim,stDim);
-    
-    for d = 1:stDim
-        Sigma(:,d) = b(d*stDim+1:(d+1)*stDim, i);
-    end
-    
+    vecP = D*b(stDim+1:end,i);
+    Sigma = reshape(vecP,stDim,stDim); % Covariance Matrix
+
     ptemp = make_ellipse(x(1:2,i),Sigma(1:2,1:2), sigmaScale, phi);
     
     if isempty(ptemp) == 0

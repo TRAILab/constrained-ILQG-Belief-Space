@@ -19,15 +19,14 @@ stDim = motionModel.stDim;
 
 xt = b0(1:stDim); % true state of robot
 x = b0(1:stDim); % estimated mean
-P = zeros(stDim); % covariance
 
-b_traj_t = zeros(stDim + stDim*stDim,length(b_nom(1,:)));
+b_traj_t = zeros(length(b0),length(b_nom(1,:)));
 b_traj_t(:,1) = b0;
 
 % unpack covariance from belief vector
-for d = 1:stDim
-    P(:,d) = b0(d*stDim+1:(d+1)*stDim, 1);
-end
+D = motionModel.D;
+vecP = D*b0(stDim+1:end);
+P = reshape(vecP,stDim,stDim); % Covariance Matrix
 
 rh = []; % robot disk drawing handle
 
@@ -62,7 +61,7 @@ for i = 1:size(u_nom,2)
         end
     end
     
-    b = [x(:);P(:)]; % current belief
+    b = [x(:);motionModel.D_psuedoinv*P(:)]; % current belief
     
     u = u_nom(:,i) + L(:,:,i)*(b - b_nom(:,i));
     
@@ -104,7 +103,7 @@ for i = 1:size(u_nom,2)
     end
     
     % final belief
-    b_f = [x;P(:)];
+    b_f = [x;motionModel.D_psuedoinv*P(:)];
     b_traj_t(:,i+1) = b_f;
     
     roboTraj(:,i+1) = xt;
@@ -125,7 +124,7 @@ for i = 1:size(u_nom,2)
     rh = fill(xt(1) + robotDisk(1,:),xt(2) + robotDisk(2,:),'b');
     set(get(get(rh,'Annotation'),'LegendInformation'),'IconDisplayStyle','off');
     [FovHandleR,FovHandleL] = drawFoV(figh,obsModel,xt,FovHandleR,FovHandleL);
-    drawResult(plotFn,b_f,3);
+    drawResult(plotFn,b_f,3,motionModel.D);
     drawnow;
     legend({'Features','Start','Goal','Nominal rolled out trajectory'},'Interpreter','Latex')
     pause(0.05);

@@ -146,7 +146,7 @@ if size(x0,2) == 1
     diverge = true;
     for alpha = Op.Alpha
         [x,un,cost]  = forward_pass(x0(:,1),alpha*u,[],[],[],1,DYNCST,Op.lims,[]);
-        drawResult(Op.plotFn,x(:,:,1),3);
+        drawResult(Op.plotFn,x(:,:,1),3,Op.D);
         saveas(gcf,'iLQG-initialguess.jpg');
         pause(3);
         % simplistic divergence test
@@ -171,7 +171,7 @@ end
 trace(1).cost = sum(cost(:));
 
 % user plotting
-drawResult(Op.plotFn,x,3);
+drawResult(Op.plotFn,x,3,Op.D);
 % Op.plotFn(x);
 
 if diverge
@@ -318,7 +318,7 @@ for iter = 1:Op.maxIter
         x              = xnew;
         cost           = costnew;
         flgChange      = 1;
-        drawResult(Op.plotFn,x,3);
+        drawResult(Op.plotFn,x,3,Op.D);
 %         Op.plotFn(x);
         
         % terminate ?
