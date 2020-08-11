@@ -50,8 +50,10 @@ nDT = size(u0,2); % Time steps
 % final convergence will be much faster (quadratic)
 full_DDP = false;
 
-% this function is needed by iLQG
-DYNCST  = @(b,u,i) beliefDynCost(b,u,xf,nDT,full_DDP,mm,om,svc,map);
+% these function is needed by iLQG_AL
+conFunc = @(b,u,k) constraintFunc(b,u,k);
+DYNCST  = @(b,u,lagMultiplier, mu,k) beliefDynCostConstr(b,u,lagMultiplier, mu,k,xf,nDT,full_DDP,mm,om,svc,conFunc,map);
+%DYNCST  = @(b,u,i) beliefDynCost(b,u,xf,nDT,full_DDP,mm,om,svc,map);
 
 % control constraints are optional
 % Op.lims  = [-1.0 1.0;         % V forward limits (m/s)
@@ -83,6 +85,7 @@ legend({'Features','Start','Goal','Mean trajectory with covariance ellipses'},'I
 Op.plotFn = plotFn;
 Op.D = mm.D;
 
+
 %% === run the optimization
 % rh = [];
 % lh = [];
@@ -92,7 +95,8 @@ Op.D = mm.D;
 %     pause(0.1)
 % end
 
-[b,u_opt,L_opt,~,~,optimCost,~,~,tt, nIter]= iLQG(DYNCST, b0, u0, Op);
+% [b,u_opt,L_opt,~,~,optimCost,~,~,tt, nIter]= iLQG(DYNCST, b0, u0, Op);
+[b,u_opt,L_opt,~,~,optimCost,~,~,tt, nIter]= iLQG_AL(DYNCST, b0, u0, Op);
 
 rh = [];
 lh = [];

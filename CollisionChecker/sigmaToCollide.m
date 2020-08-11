@@ -35,7 +35,7 @@ for i = 1:size(b,2)
 
     % number of standard deviations at which robot collides
     % at s = 0, f goes to infinite so not good -> better to use small value of 0.01
-    for s = 0.01:0.05:5.22
+    for s = 0.01:0.05:4.22
 
         % inflate robot radius 
         ROBOT_RADIUS = R_orig + s*d;
