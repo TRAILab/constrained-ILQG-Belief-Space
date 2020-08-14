@@ -10,9 +10,9 @@ function constr_values = constraintFunc(b,u,k)
 % Outputs:
 %   b_next: Updated belief vector
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    x_bound_3sig = 0.5;
-    y_bound_3sig = 0.5;
-    th_bound_3sig = 0.5;
+    x_bound_3sig = 0.13; %0.13 tight 0.5 loose
+    y_bound_3sig = 0.13; %0.13 tight 0.5 loose
+    th_bound_3sig = 0.05; % 0.05 tight 0.1 loose
     
     unc_bound = ([x_bound_3sig;y_bound_3sig;th_bound_3sig]./3).^2;
     if k <= 2

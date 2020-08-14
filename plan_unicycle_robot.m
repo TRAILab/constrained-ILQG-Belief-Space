@@ -29,16 +29,11 @@ svc = @(x)isStateValid(x,map,0); % state validity checker (collision)
 x0 = map.start; % intial state
 P = 0.1*eye(3); % intial covariance
 % sqrtSigma0 = sqrtm(Sigma0);
-b0 = [x0;P(:)]; % initial belief state
+b0 = [x0;mm.D_psuedoinv*P(:)]; % initial belief state
 
 xf = map.goal; % target state
 
 %% Setup planner to get nominal controls
-%planner = RRT(map,mm,svc);
-% planner = StraightLine(map,mm,svc);
-
-% [~,u0, initGuessFigure] = planner.plan(x0,xf);
-
 
 [x_traj0,u0, initGuessFigure] = initial_rollout_unicycle(map,mm,[],85);
 nDT = size(u0,2); % Time steps
@@ -50,8 +45,10 @@ nDT = size(u0,2); % Time steps
 % final convergence will be much faster (quadratic)
 full_DDP = false;
 
-% this function is needed by iLQG
-DYNCST  = @(b,u,i) beliefDynCost(b,u,xf,nDT,full_DDP,mm,om,svc,map);
+% these function is needed by iLQG_AL
+conFunc = @(b,u,k) constraintFunc(b,u,k);
+DYNCST  = @(b,u,lagMultiplier, mu,k) beliefDynCostConstr(b,u,lagMultiplier, mu,k,xf,nDT,full_DDP,mm,om,svc,conFunc,map);
+%DYNCST  = @(b,u,i) beliefDynCost(b,u,xf,nDT,full_DDP,mm,om,svc,map);
 
 % control constraints are optional
 % Op.lims  = [-1.0 1.0;         % V forward limits (m/s)
@@ -82,6 +79,7 @@ plotFn = @(x) set(line_handle,'Xdata',x(1,:),'Ydata',x(2,:));
 % legend({'Features','Start','Goal'},'Interpreter','Latex')
 legend({'Features','Start','Goal','Mean trajectory with covariance ellipses'},'Interpreter','Latex')
 Op.plotFn = plotFn;
+Op.D = mm.D;
 
 %% === run the optimization
 % rh = [];
@@ -92,15 +90,16 @@ Op.plotFn = plotFn;
 %     pause(0.1)
 % end
 
-[b,u_opt,L_opt,~,~,optimCost,~,~,tt, nIter]= iLQG(DYNCST, b0, u0, Op);
+%[b,u_opt,L_opt,~,~,optimCost,~,~,tt, nIter]= iLQG(DYNCST, b0, u0, Op);
+[b,u_opt,L_opt,~,~,optimCost,~,~,tt, nIter]= iLQG_AL(DYNCST, b0, u0, Op);
 
-% rh = [];
-% lh = [];
-% for k = 1:length(b(1,:))
-%     x_mean = b(1:3,k);
-%     drawFoV(figh,om,x_mean,rh,lh);
-%     pause(0.1)
-% end
+rh = [];
+lh = [];
+for k = 1:length(b(1,:))
+    x_mean = b(1:3,k);
+    drawFoV(figh,om,x_mean,rh,lh);
+    pause(0.1)
+end
 
 
 

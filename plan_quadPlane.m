@@ -34,10 +34,6 @@ b0 = [x0;mm.D_psuedoinv*P(:)]; % initial belief state
 xf = map.goal; % target state
 
 %% Setup planner to get nominal controls
-%planner = RRT(map,mm,svc);
-% planner = StraightLine(map,mm,svc);
-
-% [~,u0, initGuessFigure] = planner.plan(x0,xf);
 
 
 [x_traj0,u0, initGuessFigure] = initial_rollout_quad(map,mm,[],85);
