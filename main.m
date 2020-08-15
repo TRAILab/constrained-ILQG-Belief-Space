@@ -11,7 +11,7 @@ clear all
 clc
 % add subfolders to path
 % addpath(genpath('./'));
-fname = 'course2dhard';
+fname = 'course2dhard2';
 %fname = 'course2dhard';
 % clean up
 % clear variables; clc; close all; dbstop if error;
@@ -70,7 +70,7 @@ for i = 1:NUM_SIMS
         mkdir(outDatPath,['run',num2str(i)]);
     end
     
-%     plan_unicycle_robot(mapFilePath, [outDatPath,'run',num2str(i),'/']);
-    plan_quadPlane(mapFilePath, [outDatPath,'run',num2str(i),'/']);
+    plan_unicycle_robot(mapFilePath, [outDatPath,'run',num2str(i),'/']);
+%     plan_quadPlane(mapFilePath, [outDatPath,'run',num2str(i),'/']);
 end
 end
