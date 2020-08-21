@@ -2,7 +2,7 @@ function [map] = create_course(save_map)
 %CREATE_COURSE Summary of this function goes here
 %   Detailed explanation goes here
 
-    xlim = [0,14];
+    xlim = [0,16];
     ylim = [0,10];
 
     map.bounds = [xlim;ylim];
@@ -15,12 +15,19 @@ function [map] = create_course(save_map)
                  6,11;
                  8,11;   
                  10,12;
-                 12,11;
-                 12,9;
-                 12,7;
-                 12,5;
-                 13,3;
-                 14,2;
+                 12,10;
+                 12,8;
+                 11,6;
+                 11,5;
+                 11,4;
+                 12,4;
+                 13,4;
+                 14,8;
+                 16,8;
+                 17,6;
+                 17,4;
+                 16,2;
+                 14,1;
                  9,1.5;
                  7,2;
                  7,3;
@@ -29,10 +36,9 @@ function [map] = create_course(save_map)
                  7,6;
                  7,7;
                  7,8]';
-             map.obstacle_sizes = [2,1,2,2,2,2,2,2,2,2,2,2,2,1,2,1,1,1,1,1,1,1,1];
+             map.obstacle_sizes = [2,1,2,2,2,2,2,2,2, 2,2,1,1,1,1,1, 2,2,2,2,2,2, 1,1,1,1,1,1,1,1];
 
-    map.landmarks = [2,2;
-                     2,3;
+    map.landmarks = [2,3;
                      2.5,3;
                      2.5,5;
                      3,5;
@@ -43,14 +49,25 @@ function [map] = create_course(save_map)
                      8,10;
                      10,10;
                      10,3;
-                     12,3;
-                     6,7;
-                     7,7;
-                     7,1;].';
+                     6,8;
+                     7,8;
+                     7,1;
+                     9,1.5;
+                     13,3;
+                     13,4;
+                     11,4;
+                     11,6;
+                     15,6;
+                     15,2;
+                     14,2;
+                     14,1;
+                     12,1;
+                     ].';
     map.start = [3;1;deg2rad(90)];
-    map.goal = [9;2;wrapTo2Pi(-1.4056)];
+    map.goal = [12;5;wrapTo2Pi(-1.4056)];
     
-    sPath = '/home/wavelab/Research_code/bsp-ilqg-master/Maps/course2dhard2.mat';
+    % sPath = '/home/wavelab/Research_code/bsp-ilqg-master/Maps/course2dhard2.mat';
+    sPath = 'Maps/course2dhard3.mat';
 
     if save_map == 1
         save(sPath,'map');
