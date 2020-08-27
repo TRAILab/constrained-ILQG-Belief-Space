@@ -94,40 +94,70 @@ classdef unicycle_robot < MotionModelBase
            U = nominal_traj.u;
         end
         
-        function nominal_traj = generate_open_loop_point2point_traj(obj,x_initial,x_final,T)
+        function nominal_traj = generate_open_loop_point2point_traj(obj,x_initial,x_final)
             % "x_initial" and "x_final" are vectors that indicate the start
             % and final position of the state trajectory, we are planning
             % the control "up" for.
-            % T is the length of the horizon
-            % The nominal trajectory is simply rolling out with steady
-            % state LQR controller
-            n = obj.stDim;
-            m = obj.ctDim;
             
-            A = zeros(n,n);
-            B = eye(n,m);
-            Q = eye(n,n);
-            R = 0.1.*eye(m,m);
-            % R(3,3) = 3;
+            % minimum turn radius resutls from dividing the minimum linear
+            % velocity to maximum angular velocity. However, here we assume
+            % that the linear velocity is constant.
+            radius = unicycle_robot.turn_radius_min;
+            initial_circle_center = [radius*cos(x_initial(3)-pi/2) ; radius*sin(x_initial(3)-pi/2)] + x_initial(1:2);
+            final_circle_center = [radius*cos(x_final(3)-pi/2) ; radius*sin(x_final(3)-pi/2)] + x_final(1:2);
+            %             tth = 0:0.1:2*pi+.1;plot(initial_circle_center(1)+radius*cos(tth), initial_circle_center(2)+radius*sin(tth)); %TO DEBUG -  DONT DELETE
+            %             tth = 0:0.1:2*pi+.1;plot(final_circle_center(1)+radius*cos(tth), final_circle_center(2)+radius*sin(tth)); %TO DEBUG -  DONT DELETE
+            gamma_tangent = atan2( final_circle_center(2) - initial_circle_center(2) , final_circle_center(1) - initial_circle_center(1) ); % The angle of the tangent line
             
-            A_k = obj.getStateTransitionJacobian(x_final,0,0);
-            B_k = obj.getControlJacobian(x_final,0,0);
-
-            K = lqr(A_k,B_k,Q,R);
-
-            x_e_k = x_initial - x_final;
-            nominal_traj.x = zeros(n,T+1);
-            nominal_traj.u = zeros(m,T);
+            gamma_start_of_tangent_line = gamma_tangent + pi/2; % the angle on which the starting point of the tangent line lies on orbit i.
+            gamma_end_of_tangent_line = gamma_tangent + pi/2; % the angle on which the ending point of the tangent line lies on orbit i.
             
-            nominal_traj.x(:,1) = x_initial;
-            for k = 1:T
-                u_k = -K*x_e_k;
-                x_e_k = (A_k - B_k*K)*x_e_k;
-                
-                nominal_traj.x(:,k+1) = x_e_k + x_final;
-                nominal_traj.u(:,k) = u_k;
+            initial_robot_gamma =   x_initial(3) + pi/2; % Note that this is not robot's heading angle. This says that at which angle robot lies on the circle.
+            final_robot_gamma    =   x_final(3)   + pi/2; % Note that this is not robot's heading angle. This says that at which angle robot lies on the circle.
+            
+            % Turn part on the first circle
+            entire_th_on_initial_circle = obj.delta_theta_turn(initial_robot_gamma, gamma_start_of_tangent_line, 'cw'); % NOTE: this must be a negative number as we turn CLOCKWISE.
+            delta_theta_on_turns = - unicycle_robot.angular_velocity_max * obj.dt ; %VERY IMPORTANT: since we want to traverse the circles clockwise, the angular velocity has to be NEGATIVE.
+            kf_pre_rational = entire_th_on_initial_circle/delta_theta_on_turns; 
+            kf_pre = ceil(kf_pre_rational);
+            V_pre = unicycle_robot.linear_velocity_min_on_orbit * [ones(1,kf_pre-1) , kf_pre_rational-floor(kf_pre_rational)];
+            omega_pre = -unicycle_robot.angular_velocity_max * [ones(1,kf_pre-1) , kf_pre_rational-floor(kf_pre_rational)];  %VERY IMPORTANT: since we want to traverse the circles clockwise, the angular velocity has to be NEGATIVE.
+            u_pre = [V_pre ; omega_pre];
+            w_zero = zeros(unicycle_robot.wDim,1); % no noise
+            x_pre(:,1) = x_initial;
+            for k=1:kf_pre
+                x_pre(:,k+1) = obj.evolve(x_pre(:,k),u_pre(:,k),w_zero);
+                %                 tmp = state(x_pre(:,k+1));tmp.draw(); % FOR DEBUGGING
             end
-
+            % Line part
+            tanget_line_length = norm ( final_circle_center - initial_circle_center ) ;
+            step_length = unicycle_robot.linear_velocity_max * obj.dt;
+            kf_line_rational = tanget_line_length/step_length;
+            kf_line = ceil(kf_line_rational);
+            V_line = unicycle_robot.linear_velocity_max * [ones(1,kf_line-1) , kf_line_rational-floor(kf_line_rational)];
+            omega_line = zeros(1,kf_line);
+            u_line = [V_line;omega_line];
+            x_line(:,1) = x_pre(:,kf_pre+1);
+            for k=1:kf_line
+                x_line(:,k+1) = obj.evolve(x_line(:,k),u_line(:,k),w_zero);
+                %                 tmp = state(x_line(:,k+1));tmp.draw(); % FOR DEBUGGING
+            end
+            % Turn part on the final circle
+            th_on_final_circle = obj.delta_theta_turn(gamma_end_of_tangent_line, final_robot_gamma, 'cw'); % NOTE: this must be a negative number as we turn CLOCKWISE.
+            kf_post_rational = th_on_final_circle/delta_theta_on_turns;
+            kf_post = ceil(kf_post_rational);
+            V_post = unicycle_robot.linear_velocity_min_on_orbit * [ones(1,kf_post-1) , kf_post_rational-floor(kf_post_rational)];
+            omega_post = -unicycle_robot.angular_velocity_max * [ones(1,kf_post-1) , kf_post_rational-floor(kf_post_rational)];  %VERY IMPORTANT: since we want to traverse the circles clockwise, the angular velocity has to be NEGATIVE.
+            u_post = [V_post ; omega_post];
+            x_post(:,1) = x_line(:,kf_line+1);
+            for k=1:kf_post
+                x_post(:,k+1) = obj.evolve(x_post(:,k),u_post(:,k),w_zero);
+                %                 tmp = state(x_post(:,k+1));tmp.draw(); % FOR DEBUGGING
+            end
+            
+            nominal_traj.x = [x_pre(:,1:kf_pre) , x_line(:,1:kf_line) , x_post(:,1:kf_post+1)]; % This line is written very carefully. So, dont worry about its correctness!
+            nominal_traj.u = [u_pre(:,1:kf_pre) , u_line(:,1:kf_line) , u_post(:,1:kf_post)]; % This line is written very carefully. So, dont worry about its correctness!
+            
         end
         
         function delta_th = delta_theta_turn(obj,th_initial, th_final, direction)
