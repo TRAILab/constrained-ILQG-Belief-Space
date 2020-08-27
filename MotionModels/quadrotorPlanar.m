@@ -92,7 +92,7 @@ classdef quadrotorPlanar < MotionModelBase
             A_k = obj.getStateTransitionJacobian(0,0,0);
             B_k = obj.getControlJacobian(0,0,0);
 
-            K = lqr(A_k,B_k,Q,R);
+            K = dlqr(A_k,B_k,Q,R);
 
             x_e_k = x_initial - x_final;
             nominal_traj.x = zeros(n,T+1);
