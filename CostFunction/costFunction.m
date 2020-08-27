@@ -53,7 +53,7 @@ vecP = D*b(stDim+1:end);
 P = reshape(vecP,stDim,stDim); % Covariance Matrix
 
 Q_t = 300*eye(stDim); % penalize uncertainty
-R_t = 2*eye(ctrlDim); % penalize control effort
+R_t = 4*eye(ctrlDim); % penalize control effort
 % R_t(3,3) = 1;
 Q_l = 100*L*eye(stDim); % penalize terminal error
 Q_l(3,3) = 0;

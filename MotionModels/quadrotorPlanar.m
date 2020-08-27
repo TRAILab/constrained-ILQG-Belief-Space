@@ -84,7 +84,7 @@ classdef quadrotorPlanar < MotionModelBase
             m = obj.ctDim;
             
             A = zeros(n,n);
-            B = eye(m,m);
+            B = eye(n,m);
             Q = eye(n,n);
             R = 0.1.*eye(m,m);
             R(3,3) = 3;
