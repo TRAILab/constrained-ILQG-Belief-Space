@@ -3,7 +3,7 @@ function [x_traj,u_traj,figh] = initial_rollout_unicycle(map, motion_model, wayp
 %   hand crafted waypoints
 %   Detailed explanation goes here
     if isempty(waypoints)
-        waypoints = [map.start, [5;8.5;deg2rad(74)], [8;8.5;wrapTo2Pi(-1.2056)], [9;2.5;deg2rad(-45)], [14;2.5;deg2rad(45)], [14;5;deg2rad(135)], map.goal];
+        waypoints = [map.start, [5;8.5;deg2rad(52)], [8;8.5;deg2rad(-35)], [9;2.5;deg2rad(-48)], [14;2.5;deg2rad(58)], [14;5;deg2rad(120)], map.goal];
     end
     x_traj = [];
     u_traj = [];

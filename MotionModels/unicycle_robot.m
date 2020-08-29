@@ -2,7 +2,7 @@ classdef unicycle_robot < MotionModelBase
     %UNICYCLE_ROBOT Class definition for a unicycle robot
     %   Detailed explanation goes here
     
-     properties (Constant = true) % note that all properties must be constant, because we have a lot of copies of this object and it can take a lot of memory otherwise.
+    properties (Constant = true) % note that all properties must be constant, because we have a lot of copies of this object and it can take a lot of memory otherwise.
         stDim = 3; % state dimension
         ctDim = 2;  % control vector dimension
         wDim = 2;   % Process noise (W) dimension
@@ -11,7 +11,7 @@ classdef unicycle_robot < MotionModelBase
         eta_u = 0; % A coefficient, which makes the control noise intensity proportional to the control signal       
         zeroNoise = [0;0];
         ctrlLim = [-5.0 5.0;-90*pi/180 90*pi/180]; % control limits
-            turn_radius_min = 1.5*0.1; % indeed we need to define the minimum linear velocity in turnings (on orbits) and then find the minimum radius accordingly. But, we picked the more intuitive way.
+        turn_radius_min = 1.5*0.1; % indeed we need to define the minimum linear velocity in turnings (on orbits) and then find the minimum radius accordingly. But, we picked the more intuitive way.
         angular_velocity_max = 90*pi/180; % degree per second (converted to radian per second)
         linear_velocity_max = 0.5*10;
         linear_velocity_min_on_orbit = unicycle_robot.turn_radius_min*unicycle_robot.angular_velocity_max; % note that on the straight line the minimum velocity can go to zero. But, in turnings (on orbit) the linear velocity cannot fall below this value.
@@ -24,13 +24,13 @@ classdef unicycle_robot < MotionModelBase
              0,0,1,0,0,0;
              0,0,0,0,1,0;
              0,0,0,0,0,1;]; % Duplication matrix for creating full vectorized covariance matrix from diagnoal and below elements
-         D_psuedoinv = [1,0,0,0,0,0,0,0,0;
+        D_psuedoinv = [1,0,0,0,0,0,0,0,0;
                         0,0.5,0,0.5,0,0,0,0,0;
                         0,0,0.5,0,0,0,0.5,0,0;
                         0,0,0,0,1,0,0,0,0;
                         0,0,0,0,0,0.5,0,0.5,0;
                         0,0,0,0,0,0,0,0,1;];
-     end
+    end
     
 
     methods
@@ -103,56 +103,81 @@ classdef unicycle_robot < MotionModelBase
             % velocity to maximum angular velocity. However, here we assume
             % that the linear velocity is constant.
             radius = unicycle_robot.turn_radius_min;
-            initial_circle_center = [radius*cos(x_initial(3)-pi/2) ; radius*sin(x_initial(3)-pi/2)] + x_initial(1:2);
-            final_circle_center = [radius*cos(x_final(3)-pi/2) ; radius*sin(x_final(3)-pi/2)] + x_final(1:2);
+            line_rough_tangent = atan2(x_final(2) - x_initial(2), x_final(1) - x_initial(1)); % angle of line connecting two waypoints
+            
+            initial_heading_change = mod(line_rough_tangent - x_initial(3), 2*pi);
+            if initial_heading_change <= pi % heading turn ccw
+                initial_heading_turn = -1;
+                initial_turn_str = 'ccw';
+            else % heading turn cw
+                initial_heading_turn = 1;
+                initial_turn_str = 'cw';
+            end
+            initial_circle_center = [radius * cos(x_initial(3) - initial_heading_turn * pi/2) ; ...
+                                     radius * sin(x_initial(3) - initial_heading_turn * pi/2)] ...
+                                     + x_initial(1:2);
+            final_heading_change = mod(x_final(3) - line_rough_tangent, 2*pi);
+            if final_heading_change <= pi % heading turn ccw
+                final_heading_turn = -1;
+                final_turn_str = 'ccw';
+            else % heading turn cw
+                final_heading_turn = 1;
+                final_turn_str = 'cw';
+            end
+            final_circle_center = [radius * cos(x_final(3) - final_heading_turn * pi/2) ; ...
+                                   radius * sin(x_final(3) - final_heading_turn * pi/2)] ...
+                                   + x_final(1:2);
             %             tth = 0:0.1:2*pi+.1;plot(initial_circle_center(1)+radius*cos(tth), initial_circle_center(2)+radius*sin(tth)); %TO DEBUG -  DONT DELETE
             %             tth = 0:0.1:2*pi+.1;plot(final_circle_center(1)+radius*cos(tth), final_circle_center(2)+radius*sin(tth)); %TO DEBUG -  DONT DELETE
-            gamma_tangent = atan2( final_circle_center(2) - initial_circle_center(2) , final_circle_center(1) - initial_circle_center(1) ); % The angle of the tangent line
             
-            gamma_start_of_tangent_line = gamma_tangent + pi/2; % the angle on which the starting point of the tangent line lies on orbit i.
-            gamma_end_of_tangent_line = gamma_tangent + pi/2; % the angle on which the ending point of the tangent line lies on orbit i.
+            % gamma_tangent = atan2( final_circle_center(2) - initial_circle_center(2), final_circle_center(1) - initial_circle_center(1) ); % The angle of the tangent line % Deprecated
+            gamma_start_of_tangent_line = line_rough_tangent + initial_heading_turn * pi/2; % the angle on which the starting point of the tangent line lies on orbit i.
+            gamma_end_of_tangent_line = line_rough_tangent + final_heading_turn * pi/2; % the angle on which the ending point of the tangent line lies on orbit i.
             
-            initial_robot_gamma =   x_initial(3) + pi/2; % Note that this is not robot's heading angle. This says that at which angle robot lies on the circle.
-            final_robot_gamma    =   x_final(3)   + pi/2; % Note that this is not robot's heading angle. This says that at which angle robot lies on the circle.
+            initial_robot_gamma = x_initial(3) + initial_heading_turn * pi/2; % Note that this is not robot's heading angle. This says that at which angle robot lies on the circle.
+            final_robot_gamma = x_final(3) + final_heading_turn * pi/2; % Note that this is not robot's heading angle. This says that at which angle robot lies on the circle.
             
             % Turn part on the first circle
-            entire_th_on_initial_circle = obj.delta_theta_turn(initial_robot_gamma, gamma_start_of_tangent_line, 'cw'); % NOTE: this must be a negative number as we turn CLOCKWISE.
-            delta_theta_on_turns = - unicycle_robot.angular_velocity_max * obj.dt ; %VERY IMPORTANT: since we want to traverse the circles clockwise, the angular velocity has to be NEGATIVE.
-            kf_pre_rational = entire_th_on_initial_circle/delta_theta_on_turns; 
+            entire_th_on_initial_circle = obj.delta_theta_turn(initial_robot_gamma, gamma_start_of_tangent_line, initial_turn_str);
+            delta_theta_on_init_turns = -initial_heading_turn * unicycle_robot.angular_velocity_max * obj.dt;
+            kf_pre_rational = entire_th_on_initial_circle / delta_theta_on_init_turns; 
             kf_pre = ceil(kf_pre_rational);
             V_pre = unicycle_robot.linear_velocity_min_on_orbit * [ones(1,kf_pre-1) , kf_pre_rational-floor(kf_pre_rational)];
-            omega_pre = -unicycle_robot.angular_velocity_max * [ones(1,kf_pre-1) , kf_pre_rational-floor(kf_pre_rational)];  %VERY IMPORTANT: since we want to traverse the circles clockwise, the angular velocity has to be NEGATIVE.
-            u_pre = [V_pre ; omega_pre];
+            omega_pre = -initial_heading_turn * unicycle_robot.angular_velocity_max * [ones(1,kf_pre-1) , kf_pre_rational-floor(kf_pre_rational)];
+            u_pre = [V_pre; omega_pre];
             w_zero = zeros(unicycle_robot.wDim,1); % no noise
             x_pre(:,1) = x_initial;
             for k=1:kf_pre
                 x_pre(:,k+1) = obj.evolve(x_pre(:,k),u_pre(:,k),w_zero);
                 %                 tmp = state(x_pre(:,k+1));tmp.draw(); % FOR DEBUGGING
             end
-            % Line part
-            tanget_line_length = norm ( final_circle_center - initial_circle_center ) ;
+
+            % Turn part on the final circle
+            th_on_final_circle = obj.delta_theta_turn(gamma_end_of_tangent_line, final_robot_gamma, final_turn_str);
+            delta_theta_on_final_turns = -final_heading_turn * unicycle_robot.angular_velocity_max * obj.dt;
+            kf_post_rational = th_on_final_circle / delta_theta_on_final_turns;
+            kf_post = ceil(kf_post_rational);
+            V_post = unicycle_robot.linear_velocity_min_on_orbit * [ones(1,kf_post-1) , kf_post_rational-floor(kf_post_rational)];
+            omega_post = -final_heading_turn * unicycle_robot.angular_velocity_max * [ones(1,kf_post-1) , kf_post_rational-floor(kf_post_rational)];
+            u_post = [-V_post; -omega_post];
+            x_post(:,kf_post+1) = x_final;
+            for k=kf_post+1:-1:2 % calculate in reverse order, from x_final
+                x_post(:,k-1) = obj.evolve(x_post(:,k),u_post(:,k-1),w_zero);
+                %                 tmp = state(x_post(:,k+1));tmp.draw(); % FOR DEBUGGING
+            end
+
+            % Line part, this is calculated last because the end points needs to be there first
+            tanget_line_length = norm(x_post(:,1) - x_pre(:,kf_pre+1));
             step_length = unicycle_robot.linear_velocity_max * obj.dt;
-            kf_line_rational = tanget_line_length/step_length;
+            kf_line_rational = tanget_line_length / step_length;
             kf_line = ceil(kf_line_rational);
             V_line = unicycle_robot.linear_velocity_max * [ones(1,kf_line-1) , kf_line_rational-floor(kf_line_rational)];
             omega_line = zeros(1,kf_line);
-            u_line = [V_line;omega_line];
+            u_line = [V_line; omega_line];
             x_line(:,1) = x_pre(:,kf_pre+1);
             for k=1:kf_line
                 x_line(:,k+1) = obj.evolve(x_line(:,k),u_line(:,k),w_zero);
                 %                 tmp = state(x_line(:,k+1));tmp.draw(); % FOR DEBUGGING
-            end
-            % Turn part on the final circle
-            th_on_final_circle = obj.delta_theta_turn(gamma_end_of_tangent_line, final_robot_gamma, 'cw'); % NOTE: this must be a negative number as we turn CLOCKWISE.
-            kf_post_rational = th_on_final_circle/delta_theta_on_turns;
-            kf_post = ceil(kf_post_rational);
-            V_post = unicycle_robot.linear_velocity_min_on_orbit * [ones(1,kf_post-1) , kf_post_rational-floor(kf_post_rational)];
-            omega_post = -unicycle_robot.angular_velocity_max * [ones(1,kf_post-1) , kf_post_rational-floor(kf_post_rational)];  %VERY IMPORTANT: since we want to traverse the circles clockwise, the angular velocity has to be NEGATIVE.
-            u_post = [V_post ; omega_post];
-            x_post(:,1) = x_line(:,kf_line+1);
-            for k=1:kf_post
-                x_post(:,k+1) = obj.evolve(x_post(:,k),u_post(:,k),w_zero);
-                %                 tmp = state(x_post(:,k+1));tmp.draw(); % FOR DEBUGGING
             end
             
             nominal_traj.x = [x_pre(:,1:kf_pre) , x_line(:,1:kf_line) , x_post(:,1:kf_post+1)]; % This line is written very carefully. So, dont worry about its correctness!

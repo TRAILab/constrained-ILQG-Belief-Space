@@ -5,7 +5,7 @@ function [x_traj,u_traj,figh] = initial_rollout_quad(map,motion_model, waypoints
     if isempty(waypoints)
        goal = map.goal;
        goal(3) = deg2rad(90);
-       waypoints = [map.start, [5;8.5;deg2rad(90)], [8;8.5;deg2rad(90)], [9;2.5;deg2rad(90)], [14;2.5;deg2rad(90)], [14;5;deg2rad(90)], goal];
+       waypoints = [map.start, [5;8.5;deg2rad(45)], [8;8.5;deg2rad(-45)], [9;2.5;deg2rad(-45)], [14;2.5;deg2rad(45)], [14;5;deg2rad(135)], goal];
     end
     x_traj = [];
     u_traj = [];

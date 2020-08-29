@@ -69,7 +69,7 @@ for i = 1:NUM_SIMS
         mkdir(outDatPath,['run',num2str(i)]);
     end
     
-    % plan_unicycle_robot(mapFilePath, [outDatPath,'run',num2str(i),'/']);
-    plan_quadPlane(mapFilePath, [outDatPath,'run',num2str(i),'/']);
+    plan_unicycle_robot(mapFilePath, [outDatPath,'run',num2str(i),'/']);
+    % plan_quadPlane(mapFilePath, [outDatPath,'run',num2str(i),'/']);
 end
 end
