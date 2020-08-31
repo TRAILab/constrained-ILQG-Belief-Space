@@ -181,7 +181,7 @@ classdef unicycle_robot < MotionModelBase
             end
             
             nominal_traj.x = [x_pre(:,1:kf_pre) , x_line(:,1:kf_line) , x_post(:,1:kf_post+1)]; % This line is written very carefully. So, dont worry about its correctness!
-            nominal_traj.u = [u_pre(:,1:kf_pre) , u_line(:,1:kf_line) , u_post(:,1:kf_post)]; % This line is written very carefully. So, dont worry about its correctness!
+            nominal_traj.u = [u_pre(:,1:kf_pre) , u_line(:,1:kf_line) , -u_post(:,1:kf_post)]; % This line is written very carefully. So, dont worry about its correctness!
             
         end
         

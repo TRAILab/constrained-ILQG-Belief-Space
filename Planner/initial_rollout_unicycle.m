@@ -17,14 +17,13 @@ function [x_traj,u_traj,figh] = initial_rollout_unicycle(map, motion_model, wayp
         
     end
     
+    % Apply inputs to dynamics
+    for k = 1:length(u_traj(1,:))
+        x_traj(:,k+1) = motion_model.evolve(x_traj(:,k),u_traj(:,k),motion_model.zeroNoise);
+    end
+    
     % Draw
     
-    % x_traj = x_traj(:,1:59);
-    % u_traj = u_traj(:,1:59);
-    
-    % timesteps_remaining = timesteps - length(x_traj(1,:));
-    % x_traj = [x_traj, repmat(x_traj(:,end),1,timesteps_remaining)];
-    % u_traj = [u_traj, zeros(motion_model.ctDim,timesteps_remaining)];
     
     figh = figure();
     drawObstacles(figh,map)

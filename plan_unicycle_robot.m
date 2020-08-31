@@ -47,8 +47,8 @@ full_DDP = false;
 
 % these function is needed by iLQG_AL
 conFunc = @(b,u,k) constraintFunc(b,u,k);
-%DYNCST  = @(b,u,lagMultiplier, mu,k) beliefDynCostConstr(b,u,lagMultiplier, mu,k,xf,nDT,full_DDP,mm,om,svc,conFunc,map);
-DYNCST  = @(b,u,i) beliefDynCost(b,u,xf,nDT,full_DDP,mm,om,svc,map);
+DYNCST  = @(b,u,lagMultiplier, mu,k) beliefDynCostConstr(b,u,lagMultiplier, mu,k,xf,nDT,full_DDP,mm,om,svc,conFunc,map);
+%DYNCST  = @(b,u,i) beliefDynCost(b,u,xf,nDT,full_DDP,mm,om,svc,map);
 
 % control constraints are optional
 % Op.lims  = [-1.0 1.0;         % V forward limits (m/s)
@@ -90,8 +90,8 @@ Op.D = mm.D;
 %     pause(0.1)
 % end
 
-[b,u_opt,L_opt,~,~,optimCost,~,~,tt, nIter]= iLQG(DYNCST, b0, u0, Op);
-%[b,u_opt,L_opt,~,~,optimCost,~,~,tt, nIter]= iLQG_AL(DYNCST, b0, u0, Op);
+%[b,u_opt,L_opt,~,~,optimCost,~,~,tt, nIter]= iLQG(DYNCST, b0, u0, Op);
+[b,u_opt,L_opt,~,~,optimCost,~,~,tt, nIter]= iLQG_AL(DYNCST, b0, u0, Op);
 
 rh = [];
 lh = [];
