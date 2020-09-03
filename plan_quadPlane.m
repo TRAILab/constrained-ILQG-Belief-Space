@@ -132,7 +132,7 @@ svcDyn = @(x)isStateValidAnimate(x,map,DYNAMIC_OBS); % state validity checker (c
 
 [didCollide, b_actual_traj, x_traj_true,trCov_vs_time{1}] = animate(figh, plotFn, b0, b, u_opt, L_opt, mm, om, svcDyn, DYNAMIC_OBS);
 
-plot_traj(b, b_actual_traj, x_traj_true,dt)% Plot belief errors
+plot_traj(b, b_actual_traj, x_traj_true,dt, conFunc)% Plot belief errors
 
 results.collision{1} = didCollide;
 
