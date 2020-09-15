@@ -48,7 +48,7 @@ full_DDP = false;
 % these function is needed by iLQG_AL
 conFunc = @(b,u,k) constraintFunc(b,u,k);
 DYNCST  = @(b,u,lagMultiplier, mu,k) beliefDynCostConstr(b,u,lagMultiplier, mu,k,xf,nDT,full_DDP,mm,om,svc,conFunc,map);
-%DYNCST  = @(b,u,i) beliefDynCost(b,u,xf,nDT,full_DDP,mm,om,svc,map);
+% DYNCST  = @(b,u,i) beliefDynCost(b,u,xf,nDT,full_DDP,mm,om,svc,map);
 
 % control constraints are optional
 % Op.lims  = [-1.0 1.0;         % V forward limits (m/s)
@@ -90,8 +90,9 @@ Op.D = mm.D;
 %     pause(0.1)
 % end
 
-%[b,u_opt,L_opt,~,~,optimCost,~,~,tt, nIter]= iLQG(DYNCST, b0, u0, Op);
+% [b,u_opt,L_opt,~,~,optimCost,~,~,tt, nIter]= iLQG(DYNCST, b0, u0, Op);
 [b,u_opt,L_opt,~,~,optimCost,~,~,tt, nIter]= iLQG_AL(DYNCST, b0, u0, Op);
+fprintf(['sum of u:   %-12.7g\n'],norm(u_opt));
 
 rh = [];
 lh = [];
@@ -130,9 +131,9 @@ end
 svcDyn = @(x)isStateValidAnimate(x,map,DYNAMIC_OBS); % state validity checker (collision)
 
 
-[didCollide, b_actual_traj, x_traj_true,trCov_vs_time{1}] = animate(figh, plotFn, b0, b, u_opt, L_opt, mm, om, svcDyn, DYNAMIC_OBS);
+[didCollide, b_actual_traj, x_traj_true,trCov_vs_time{1}] = animate(figh, plotFn, b0, b, u_opt, L_opt, mm, om, svcDyn, map, DYNAMIC_OBS);
 
-plot_traj(b, b_actual_traj, x_traj_true,dt,conFunc)% Plot belief errors
+plot_traj(b, b_actual_traj, x_traj_true, dt, conFunc, outDatPath) % Plot belief errors
 
 results.collision{1} = didCollide;
 

@@ -1,4 +1,4 @@
-function plot_traj(b_nom, b_traj_t, roboTraj,dt, constr_func)
+function plot_traj(b_nom, b_traj_t, roboTraj,dt, constr_func, outDatPath)
 %PLOT_TRAJ Plot belief trajectories and input trajectories
 %   Detailed explanation goes here
     %%  Plotting
@@ -7,7 +7,7 @@ function plot_traj(b_nom, b_traj_t, roboTraj,dt, constr_func)
 constr_val = 3.*sqrt(-constr_func(zeros(length(b_nom(:,1)),1),0,5));
 
 t = dt.*[1:1:length(b_nom)];
-figure
+figh = figure;
 subplot(3,1,1)
 %Plot nominal belief and 3sig bound
 % plot(t,b_nom(1,:) - roboTraj(1,:),'r-')
@@ -98,6 +98,11 @@ legend({'nominal $3\sigma$ bounds','$\hat{e}_x$','actual $3\sigma$ bounds','Cons
 xlabel('Time, (s)','Interpreter','Latex')
 ylabel('Heading error $\theta$, (rad)','Interpreter','Latex')
 
+try
+    savefig(figh,strcat(outDatPath,'belief-errors'));
+catch ME
+    warning('Could not save figs')
+end
 
 end
 
