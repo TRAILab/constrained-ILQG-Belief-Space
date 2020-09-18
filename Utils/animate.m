@@ -44,6 +44,10 @@ trCov_vs_time(1) = trace(P);
 
 roboTraj = zeros(stDim,length(b_nom(1,:)));
 roboTraj(:,1) = xt;
+distSegToObs = zeros(1, size(map.obstacles(1,:),2));
+distSegToObs(:) = 30; % set to a large number
+distTrajToObs = zeros(1, length(b_nom(1,:))-1);
+trajLength = 0;
 
 failed = 0;
 FovHandleL = [];
@@ -111,6 +115,24 @@ for i = 1:size(u_nom,2)
     roboTraj(:,i+1) = xt;
     
     trCov_vs_time(i+1) = trace(P);
+
+    % calculate distance to closest obstacle, and increment path length
+    segLen = norm(xt - roboTraj(:,i));
+    trajLength = trajLength + segLen;
+    for obs_count = 1:size(map.obstacles(1,:),2)
+        if segLen == 0.0
+            projection = xt;
+        else
+            t_line = dot((map.obstacles(:,obs_count)-0.5*map.obstacle_sizes(obs_count)) - roboTraj(1:2,i), ...
+                            xt(1:2) - roboTraj(1:2,i)) ...
+                    / (segLen*segLen);
+            t_seg = max([0 min([1 t_line])]);
+            projection = roboTraj(1:2,i) + t_seg * (xt(1:2) - roboTraj(1:2,i));
+        end
+        distSegToObs(obs_count) = norm((map.obstacles(:,obs_count) - projection)-0.5*map.obstacle_sizes(obs_count)) - (sqrt(2)/2)*map.obstacle_sizes(obs_count) - ROBOT_RADIUS; % To simplify calculation, still treat as circle obstacle
+    end
+    distTrajToObs(i) = min(distSegToObs);
+    distSegToObs(:) = 30;
     
     % if robot is in collision
     if stateValidityChecker(xt) == 0
@@ -131,6 +153,12 @@ for i = 1:size(u_nom,2)
     legend({'Features','Start','Goal','Nominal rolled out trajectory'},'Interpreter','Latex')
     pause(0.05);
 end
+
+distTrajToObs
+fprintf(['\n'...
+        'min distance to obstacle: %-12.7g\n' ...
+        'trajectory length: %-12.7g\n'], ...
+        min(distTrajToObs), trajLength);
 
 figure(figh);
 sg = plot(roboTraj(1,:),roboTraj(2,:),'g', 'LineWidth',2);
