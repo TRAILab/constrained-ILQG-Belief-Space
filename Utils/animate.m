@@ -1,4 +1,4 @@
-function [failed, b_traj_t, roboTraj,trCov_vs_time] = animate(figh, plotFn, b0, b_nom, u_nom, L, motionModel, obsModel, stateValidityChecker, DYNAMIC_OBS)
+function [failed, b_traj_t, roboTraj,trCov_vs_time, u_actual] = animate(figh, plotFn, b0, b_nom, u_nom, L, motionModel, obsModel, stateValidityChecker, DYNAMIC_OBS)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Animate the robot's motion from start to goal
 %
@@ -22,6 +22,7 @@ x = b0(1:stDim); % estimated mean
 
 b_traj_t = zeros(length(b0),length(b_nom(1,:)));
 b_traj_t(:,1) = b0;
+u_actual = zeros(size(u_nom));
 
 % unpack covariance from belief vector
 D = motionModel.D;
@@ -64,6 +65,7 @@ for i = 1:size(u_nom,2)
     b = [x(:);motionModel.D_psuedoinv*P(:)]; % current belief
     
     u = u_nom(:,i) + L(:,:,i)*(b - b_nom(:,i));
+    u_actual(:,i) = u;
     
     % update robot
     processNoise = motionModel.generateProcessNoise(xt,u); % process noise
