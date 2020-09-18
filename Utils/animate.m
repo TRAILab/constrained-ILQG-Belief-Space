@@ -1,4 +1,4 @@
-function [failed, b_traj_t, roboTraj,trCov_vs_time, u_actual] = animate(figh, plotFn, b0, b_nom, u_nom, L, motionModel, obsModel, stateValidityChecker, DYNAMIC_OBS)
+function [failed, b_traj_t, roboTraj,trCov_vs_time, u_actual] = animate(figh, plotFn, b0, b_nom, u_nom, L, motionModel, obsModel, stateValidityChecker, map, DYNAMIC_OBS)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Animate the robot's motion from start to goal
 %

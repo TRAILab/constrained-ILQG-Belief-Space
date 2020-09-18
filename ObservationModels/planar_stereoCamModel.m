@@ -186,7 +186,7 @@ classdef planar_stereoCamModel < ObservationModelBase
             theta = acos(p_jc_c_norm.'*[0;0;1]);
             
             %Calculate visibility, parallax angle alpha
-            th_j = p_ji_i(3);
+            th_j = deg2rad(p_ji_i(3));
             r_jk_i = -p_ji_i(1:2) + x(1:2);
             r_jk_i_norm = r_jk_i./norm(r_jk_i);
             e_j = [cos(th_j);sin(th_j)];
@@ -194,7 +194,7 @@ classdef planar_stereoCamModel < ObservationModelBase
             alpha = acos(r_jk_i_norm.'*e_j);
             
             if theta <= obj.FoV/2 && alpha <=obj.max_alpha/2
-                p_vis = 0.5*(cos(pi*theta/(obj.FoV/2)) + 1)*0.5*(cos(pi*alpha/(obj.FoV/2)) + 1);
+                p_vis = 0.5*(cos(pi*theta/(obj.FoV/2)) + 1)*0.5*(cos(pi*alpha/(obj.max_alpha/2)) + 1);
             else
                 p_vis = 0;
             end
