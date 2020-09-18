@@ -12,7 +12,7 @@ close all;
 DYNAMIC_OBS = 0;
 
 dt = 0.1; % time step
-
+results_path = '/home/wavelab/Research_code/bsp-ilqg-master/ResultsiLQG_10/run1/ilqg_results_1.mat';
 load(mapPath); % load map
 
 mm = quadrotorPlanar(dt); % motion model
@@ -83,16 +83,19 @@ Op.D = mm.D;
 
 
 %% === run the optimization
-% rh = [];
-% lh = [];
-% for k = 1:length(x_traj0(1,:))
-%     x_mean = x_traj0(1:3,k);
-%     drawFoV(figh,om,x_mean,rh,lh);
-%     pause(0.1)
-% end
-
-% [b,u_opt,L_opt,~,~,optimCost,~,~,tt, nIter]= iLQG(DYNCST, b0, u0, Op);
-[b,u_opt,L_opt,~,~,optimCost,~,~,tt, nIter]= iLQG_AL(DYNCST, b0, u0, Op);
+load_controller = 0;
+if load_controller
+    load(results_path);
+    b = results.b;
+    u_opt = results.u_opt;
+    L_opt = results.L_opt;
+    tt = results.tt;
+    nIter = results.nIter;
+    results = resutls.optimCost;
+else
+%     [b,u_opt,L_opt,~,~,optimCost,~,~,tt, nIter]= iLQG(DYNCST, b0, u0, Op);
+    [b,u_opt,L_opt,~,~,optimCost,~,~,tt, nIter]= iLQG_AL(DYNCST, b0, u0, Op);
+end
 
 rh = [];
 lh = [];
@@ -114,19 +117,16 @@ end
 
 results.mmNoiseSigma = sqrt(diag(mm.P_Wg));
 % results.omNoiseSigma = om.sigma_b;
-results.cost{1} = fliplr(cumsum(fliplr(optimCost)));
-results.b{1} = b;
-results.u{1} = u_opt;
-results.L{1} = L_opt;
-results.time{1} = tt;
-results.iter{1} = nIter;
-results.start{1} = x0;
-results.goal{1} = xf;
+results.optimCost = fliplr(cumsum(fliplr(optimCost)));
+results.b = b;
+results.u_opt = u_opt;
+results.L_opt = L_opt;
+results.tt = tt;
+results.nIter = nIter;
+results.x0 = x0;
+results.xf = xf;
 
 %% plot the final trajectory and covariances
-if DYNAMIC_OBS == 1
-    drawObstacles(figh,map.dynamicObs);
-end
 
 svcDyn = @(x)isStateValidAnimate(x,map,DYNAMIC_OBS); % state validity checker (collision)
 
@@ -136,59 +136,17 @@ plot_traj(b, b_actual_traj, x_traj_true, dt, conFunc, outDatPath) % Plot belief 
 
 results.collision{1} = didCollide;
 
-% if dynamic obstacle showed up
-if didCollide == 2
-    
-    try
-        savefig(figh,strcat(outDatPath,'iLQG-dynobs-collision-detected'));        
-    catch ME
-        warning('Could not save figs')
-    end
-    
-    x0 = b_f(1:2,1); % intial state
-    xf = map.goal; % target state
-    
-    planner = RRT(map,mm,svcDyn);
-    
-    [~,u0,~] = planner.plan(x0,xf);
-    
-    nDT = size(u0,2); % Time steps
-    
-    % this function is needed by iLQG
-    DYNCST  = @(b,u,i) beliefDynCost(b,u,xf,nDT,full_DDP,mm,om,svcDyn);
-    
-    [b,u_opt,L_opt,~,~,optimCost,~,~,tt, nIter] = iLQG(DYNCST, b_f, u0, Op);
-    
-    try
-        savefig(figh,strcat(outDatPath,'iLQG-post-dynobs-solution'));        
-    catch ME
-        warning('Could not save figs')
-    end
-    
-    [didCollide, ~, trCov_vs_time{2}] = animate(figh, plotFn, b_f, b, u_opt, L_opt, mm, om, svcDyn, DYNAMIC_OBS);
-    
-    results.cost{2} = fliplr(cumsum(fliplr(optimCost)));
-    results.b{2} = b;
-    results.u{2} = u_opt;
-    results.L{2} = L_opt;
-    results.time{2} = tt;
-    results.iter{2} = nIter;
-    results.start{2} = x0;
-    results.goal{2} = xf;
-    results.collision{2} = didCollide;
-    results.trCov_vs_Time = cumsum([trCov_vs_time{1} trCov_vs_time{2}]);
-
-else
-    try
-        savefig(figh,strcat(outDatPath,'iLQG-A2B-soution'));
-    catch ME
-        warning('Could not save figs')
-    end
-
-end
 
 try
-    save(strcat(outDatPath,'ilqg_results.mat'), 'results');
+    savefig(figh,strcat(outDatPath,'iLQG-1'));
+catch ME
+    warning('Could not save figs')
+end
+
+
+
+try
+    save(strcat(outDatPath,'ilqg_results_1.mat'), 'results');
 catch ME
     warning('Could not save results')
 end

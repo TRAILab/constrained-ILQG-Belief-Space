@@ -31,18 +31,13 @@ mapFilePath = strcat('./Maps/',fname,'.mat');
 
 time = clock; % Gets the current time as a 6 element vector
 
-newFolderName = [fname,'_',...
-    num2str(time(1)),'_',... % Returns year as character
-    num2str(time(2)),'_',... % Returns month as character
-    num2str(time(3)),'_',... % Returns day as char
-    num2str(time(4)),'_',... % resturns hour as char..
-    num2str(time(5))]; %returns minute as char     
+newFolderName = 'iLQG_AL_loose';   
 
 % Lets check for platform type i.e., Windows, Linux and define base folder
 % accordingly base diretory where runs live
 if isunix ==1
     [~,username] = system('whoami');
-    baseDirectory = ['/home/',username(1:end-1),'/MATLAB/TRO/SingleHomotopy/'];
+    baseDirectory = ['/home/',username(1:end-1),'/Research_code/bsp-ilqg-master/Results'];
     % Mac is unix so have to check here
     if ismac==1
         baseDirectory = ['/Users/',username(1:end-1),'/Documents/MATLAB/TRO/SingleHomotopy/'];
