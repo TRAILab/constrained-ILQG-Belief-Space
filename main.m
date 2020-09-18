@@ -11,7 +11,7 @@ clear all
 clc
 % add subfolders to path
 % addpath(genpath('./'));
-fname = 'course2dhard3no-occlu';
+fname = 'with_normals';
 % clean up
 % clear variables; clc; close all; dbstop if error;
 
