@@ -137,7 +137,7 @@ end
 lambda   = Op.lambda;
 dlambda  = Op.dlambda;
 lagMult = ones(J,N +1);
-mu = 10.*ones(J,N +1);
+mu = 100.*ones(J,N +1);
 phi = repmat(Op.phi,1,N+1);
 tolConstr = Op.tolConstr;
 
@@ -179,6 +179,7 @@ else
 end
 
 trace(1).cost = sum(cost(:));
+init_cost = sum(cost(:));
 
 % user plotting
 drawResult(Op.plotFn,x,3,Op.D);
@@ -207,7 +208,7 @@ t_start     = tic;
 if verbosity > 0
     fprintf('\n=========== begin iLQG ===========\n');
 end
-graphics(Op.plot,x,u,cost,zeros(m,n,N),[],[],[],[],[],[],trace,1);
+graphics(Op.plot,x,u,cost,zeros(m,n,N),[],[],[],[],[],[],trace,1,init_cost);
 
 for iterOut = 1:Op.maxIterOuter
     
@@ -372,7 +373,7 @@ for iterOut = 1:Op.maxIterOuter
         trace(iter).improvement = dcost;
         trace(iter).cost        = sum(cost(:));
         trace(iter).reduc_ratio = z;
-        stop = graphics(Op.plot,x,u,cost,L,Vx,Vxx,fx,fxx,fu,fuu,trace(1:iter),0);
+        stop = graphics(Op.plot,x,u,cost,L,Vx,Vxx,fx,fxx,fu,fuu,trace(1:iter),0,init_cost);
     end
     %====== Outer loop Update: Update multipliers, penalty parameters etc
        % Outer loop termination check
@@ -434,7 +435,7 @@ if ~isempty(iter)
     totalTime = total_t;
     trace    = trace(~isnan([trace.iter]));
 %     timing   = [diff_t back_t fwd_t total_t-diff_t-back_t-fwd_t];
-    graphics(Op.plot,x,u,cost,L,Vx,Vxx,fx,fxx,fu,fuu,trace,2); % draw legend
+    graphics(Op.plot,x,u,cost,L,Vx,Vxx,fx,fxx,fu,fuu,trace,2,init_cost); % draw legend
 else
     error('Failure: no iterations completed, something is wrong.')
 end
@@ -627,7 +628,7 @@ function [lagMultNew, muNew, phiNew] = updateMultPen(constr_vals, lagMult, mu, p
 
 
 
-function  stop = graphics(figures,x,u,cost,L,Vx,Vxx,fx,fxx,fu,fuu,trace,init)
+function  stop = graphics(figures,x,u,cost,L,Vx,Vxx,fx,fxx,fu,fuu,trace,init,init_cost)
 stop = 0;
 
 if figures == 0
@@ -647,10 +648,10 @@ mT    = max(T);
 % === first figure
 if figures ~= 0  && ( mod(mT,figures) == 0 || init == 2 )
     
-    fig1 = findobj(0,'name','iLQG');
+    fig1 = findobj(0,'name','iLQG_AL');
     if  isempty(fig1)
         fig1 = figure();
-        set(fig1,'NumberTitle','off','Name','iLQG','KeyPressFcn',@Kpress,'user',0,'toolbar','none', 'WindowStyle', 'docked');
+        set(fig1,'NumberTitle','off','Name','iLQG_AL','KeyPressFcn',@Kpress,'user',0,'toolbar','none', 'WindowStyle', 'docked');
         fprintf('Type ESC in the graphics window to terminate early.\n')
     end
     
@@ -688,14 +689,16 @@ if figures ~= 0  && ( mod(mT,figures) == 0 || init == 2 )
     xlabel 'timesteps'
     
     ax1      = subplot(2,2,2);
-    set(ax1,'XAxisL','top','YAxisL','right','xlim',[1 mT+eps],'xtick',[])
-    hV = line(T,[trace(T).cost],'linewidth',4,'color',.5*[1 1 1]);
-    ax2 = axes('Position',get(ax1,'Position'));
-    converge = [[trace(T).lambda]' [trace(T).alpha]' [trace(T).grad_norm]' [trace(T).improvement]'];
-    hT = semilogy(T,max(0, converge),'.-','linewidth',2,'markersize',10);
-    set(ax2,'xlim',[1 mT+eps],'Ygrid','on','YMinorGrid','off','color','none');
-    set(ax1,'Position',get(ax2,'Position'));
-    double_title(ax1,ax2,'convergence trace','total cost')
+    set(ax1,'XAxisL','bottom','YAxisL','left','xlim',[0 mT+1],'Ygrid','on','YMinorGrid','off')
+    hV = line([0,T],[init_cost, trace(T).cost],'linewidth',4,'color',.5*[1 1 1]);
+%     ax2 = axes('Position',get(ax1,'Position'));
+%     converge = [[trace(T).lambda]' [trace(T).alpha]' [trace(T).grad_norm]' [trace(T).improvement]'];
+%     hT = semilogy(T,max(0, converge),'.-','linewidth',2,'markersize',10);
+%     set(ax2,'xlim',[1 mT+eps],'Ygrid','on','YMinorGrid','off','color','none');
+%     set(ax1,'Position',get(ax2,'Position'));
+%     double_title(ax1,ax2,'convergence trace','total cost')
+    xlabel 'iterations'
+    title('Convergence Plot')
     
     subplot(2,2,4);
 %     plot(T,[trace(T).reduc_ratio]','.-','linewidth',2);
@@ -787,8 +790,8 @@ end
 if init == 1
     figure(fig1);
 elseif init == 2
-    strings  = {'V','\lambda','\alpha','\partial_uV','\Delta{V}'};
-    legend([hV; hT],strings,'Location','Best');
+    strings  = {'Cost'};
+    legend(hV,strings,'Location','Best');
 end
 
 drawnow;

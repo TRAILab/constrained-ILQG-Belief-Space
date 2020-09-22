@@ -6,7 +6,7 @@ classdef unicycle_robot < MotionModelBase
         stDim = 3; % state dimension
         ctDim = 2;  % control vector dimension
         wDim = 2;   % Process noise (W) dimension
-        P_Wg = diag([0.15,0.1].^2); % covariance of state-additive-noise
+        P_Wg = diag(([0.2,0.07]./3).^2); % covariance of state-additive-noise
         sigma_b_u = 0; % A constant bias intensity (covariance) of the control noise
         eta_u = 0; % A coefficient, which makes the control noise intensity proportional to the control signal       
         zeroNoise = [0;0];

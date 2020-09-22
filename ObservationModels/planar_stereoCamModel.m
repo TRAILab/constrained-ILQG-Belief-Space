@@ -19,7 +19,7 @@ classdef planar_stereoCamModel < ObservationModelBase
         C_cv = [0,-1,0;
                 0,0,-1;
                 1,0,0];
-        FoV = deg2rad(50);
+        FoV = deg2rad(30);
         max_alpha = deg2rad(90);
         eps = 1e-7;
     end

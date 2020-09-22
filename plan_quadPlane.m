@@ -12,7 +12,7 @@ close all;
 DYNAMIC_OBS = 0;
 
 dt = 0.1; % time step
-results_path = '/home/wavelab/Research_code/bsp-ilqg-master/ResultsiLQG_10/run1/ilqg_results_1.mat';
+results_path = '/home/wavelab/Research_code/bsp-ilqg-master/ResultsiLQG_AL_30_FoV_mid/run1/ilqg_results_1.mat';
 load(mapPath); % load map
 
 mm = quadrotorPlanar(dt); % motion model
@@ -27,7 +27,7 @@ svc = @(x)isStateValid(x,map,0); % state validity checker (collision)
 %% Setup start and goal/target state
 
 x0 = map.start; % intial state
-P = 0.1*eye(3); % intial covariance
+P = 0.02*eye(3); % intial covariance
 % sqrtSigma0 = sqrtm(Sigma0);
 b0 = [x0;mm.D_psuedoinv*P(:)]; % initial belief state
 
@@ -48,8 +48,9 @@ full_DDP = false;
 
 % these function is needed by iLQG_AL
 conFunc = @(b,u,k) constraintFunc(b,u,k);
-DYNCST  = @(b,u,lagMultiplier, mu,k) beliefDynCostConstr(b,u,lagMultiplier, mu,k,xf,nDT,full_DDP,mm,om,svc,conFunc,map); % For iLQG_AL
-% DYNCST  = @(b,u,i) beliefDynCost(b,u,xf,nDT,full_DDP,mm,om,svc,map); % For iLQG
+% DYNCST  = @(b,u,lagMultiplier, mu,k) beliefDynCostConstr(b,u,lagMultiplier, mu,k,xf,nDT,full_DDP,mm,om,svc,conFunc,map); % For iLQG_AL
+DYNCST  = @(b,u,i) beliefDynCost(b,u,xf,nDT,full_DDP,mm,om,svc,map); % For iLQG
+% DYNCST  = @(b,u,i) beliefDynCost_nonsmooth(b,u,xf,nDT,full_DDP,mm,om,svc,map); % For iLQG without visibility smoothing
 
 % control constraints are optional
 % Op.lims  = [-1.0 1.0;         % V forward limits (m/s)
@@ -91,10 +92,12 @@ if load_controller
     L_opt = results.L_opt;
     tt = results.tt;
     nIter = results.nIter;
-    results = resutls.optimCost;
+    optimCost = results.optimCost;
+    trace = results.trace;
+    drawResult(plotFn, b, mm.stDim,mm.D)
 else
-%     [b,u_opt,L_opt,~,~,optimCost,~,~,tt, nIter]= iLQG(DYNCST, b0, u0, Op);
-    [b,u_opt,L_opt,~,~,optimCost,~,~,tt, nIter]= iLQG_AL(DYNCST, b0, u0, Op);
+    [b,u_opt,L_opt,~,~,optimCost,trace,~,tt, nIter]= iLQG(DYNCST, b0, u0, Op);
+%     [b,u_opt,L_opt,~,~,optimCost,trace,~,tt, nIter]= iLQG_AL(DYNCST, b0, u0, Op);
 end
 
 rh = [];
@@ -125,6 +128,7 @@ results.tt = tt;
 results.nIter = nIter;
 results.x0 = x0;
 results.xf = xf;
+results.trace = trace;
 
 %% plot the final trajectory and covariances
 

@@ -111,19 +111,21 @@ if ~isempty(varargin)
   if varargin{1} == 1
 %     nSigma = sigmaToCollideAll(b,stDim,stateValidityChecker,map);
 %     cc = sum(exp(-nSigma));
-    nSigma = sigmaToCollide(b,stDim,D,stateValidityChecker);
+%     nSigma = sigmaToCollide(b,stDim,D,stateValidityChecker);
+    nSigma = sigmaToCollide2(b,stDim,D,map);
     cc = log(chi2cdf(nSigma^2, stDim-1));   
 
   end
 else
 %   nSigma = sigmaToCollideAll(b,stDim,stateValidityChecker,map);
 %   cc = sum(exp(-nSigma));
-    nSigma = sigmaToCollide(b,stDim,D,stateValidityChecker);
+%     nSigma = sigmaToCollide(b,stDim,D,stateValidityChecker);
+    nSigma = sigmaToCollide2(b,stDim,D,map);
     cc = -log(chi2cdf(nSigma^2, stDim-1));
 end
   
 
 
-cost = sc + ic + uc + 300*w_cc*cc;
+cost = sc + ic + uc + 350*w_cc*cc;
 
 end

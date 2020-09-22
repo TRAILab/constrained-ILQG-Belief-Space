@@ -11,7 +11,7 @@ clear all
 clc
 % add subfolders to path
 % addpath(genpath('./'));
-fname = 'with_normals';
+fname = 'with_normals2';
 % clean up
 % clear variables; clc; close all; dbstop if error;
 
@@ -31,7 +31,7 @@ mapFilePath = strcat('./Maps/',fname,'.mat');
 
 time = clock; % Gets the current time as a 6 element vector
 
-newFolderName = 'iLQG_AL_loose';   
+newFolderName = 'uni_iLQG_30_FoV_nonsmooth2';   
 
 % Lets check for platform type i.e., Windows, Linux and define base folder
 % accordingly base diretory where runs live
@@ -64,7 +64,7 @@ for i = 1:NUM_SIMS
         mkdir(outDatPath,['run',num2str(i)]);
     end
     
-    % plan_unicycle_robot(mapFilePath, [outDatPath,'run',num2str(i),'/']);
-    plan_quadPlane(mapFilePath, [outDatPath,'run',num2str(i),'/']);
+    plan_unicycle_robot(mapFilePath, [outDatPath,'run',num2str(i),'/']);
+%     plan_quadPlane(mapFilePath, [outDatPath,'run',num2str(i),'/']);
 end
 end
