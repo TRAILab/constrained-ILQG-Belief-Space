@@ -30,12 +30,12 @@ fname = 'with_normals2';
 mapFilePath = strcat('./Maps/',fname,'.mat');
 
 time = fix(clock); % Gets the current time as a 6 element vector
-time_stamp = [num2str(time(1)), num2str(time(2),'%02.f'), num2str(time(3),'%02.f'),'_',... % year, month, day
+timeStamp = [num2str(time(1)), num2str(time(2),'%02.f'), num2str(time(3),'%02.f'),'_',... % year, month, day
     num2str(time(4),'%02.f'), num2str(time(5),'%02.f'), num2str(time(6),'%02.f')]; % hour, minute, second
 
-robot_type = 'quad';
-% robot_type = 'uni';
-envSettingFolderName = strcat(robot_type, '_iLQG_30_FoV_nonsmooth2');
+robotType = 'quad';
+% robotType = 'uni';
+envSettingFolderName = strcat(robotType, '_iLQG_FoV_30');
 
 % Lets check for platform type i.e., Windows, Linux and define base folder
 % accordingly base diretory where runs live
@@ -71,13 +71,13 @@ end
 for i = 1:NUM_SIMS
     
     if CREATE_OUTPUT_DIRECTORY
-        mkdir(outDatPath, [time_stamp,'_run',num2str(i)]);
+        mkdir(outDatPath, [timeStamp,'_run',num2str(i)]);
     end
     
-    outDatPathFull = strcat(outDatPath, time_stamp, '_run', num2str(i), '/');
-    if strcmp(robot_type, 'uni')
+    outDatPathFull = strcat(outDatPath, timeStamp, '_run', num2str(i), '/');
+    if strcmp(robotType, 'uni')
         plan_unicycle_robot(mapFilePath, trainPath, outDatPathFull);
-    elseif strcmp(robot_type, 'quad')
+    elseif strcmp(robotType, 'quad')
         plan_quadPlane(mapFilePath, trainPath, outDatPathFull);
     end
     
