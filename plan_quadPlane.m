@@ -4,7 +4,7 @@
 % and has a heading direction. A stereo camera is attached to the robot,
 % with the camera axis aligned with the heading
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function plan_quadPlane(mapPath, outDatPath)
+function plan_quadPlane(mapPath, trainPath, outDatPath)
 
 close all;
 
@@ -12,7 +12,9 @@ close all;
 DYNAMIC_OBS = 0;
 
 dt = 0.1; % time step
-results_path = '/home/wavelab/Research_code/bsp-ilqg-master/ResultsiLQG_AL_30_FoV_mid/run1/ilqg_results_1.mat';
+% control_method = 'iLQG';
+control_method = 'iLQG_AL';
+
 load(mapPath); % load map
 
 mm = quadrotorPlanar(dt); % motion model
@@ -46,17 +48,22 @@ nDT = size(u0,2); % Time steps
 % final convergence will be much faster (quadratic)
 full_DDP = false;
 
-% these function is needed by iLQG_AL
-conFunc = @(b,u,k) constraintFunc(b,u,k);
-% DYNCST  = @(b,u,lagMultiplier, mu,k) beliefDynCostConstr(b,u,lagMultiplier, mu,k,xf,nDT,full_DDP,mm,om,svc,conFunc,map); % For iLQG_AL
-DYNCST  = @(b,u,i) beliefDynCost(b,u,xf,nDT,full_DDP,mm,om,svc,map); % For iLQG
-% DYNCST  = @(b,u,i) beliefDynCost_nonsmooth(b,u,xf,nDT,full_DDP,mm,om,svc,map); % For iLQG without visibility smoothing
+if strcmp(control_method, 'iLQG_AL')
+    % these function is needed by iLQG_AL
+    x_cstr_bound = 0.25;
+    conFunc = @(b,u,k) constraintFunc(b,u,k); % temporary fix here since anonymous function call cannot return multiple values, write the x direction constraint
+    DYNCST  = @(b,u,lagMultiplier, mu,k) beliefDynCostConstr(b,u,lagMultiplier, mu,k,xf,nDT,full_DDP,mm,om,svc,conFunc,map); % For iLQG_AL
+elseif strcmp(control_method, 'iLQG')
+    info_cost = 1000; % temporary fix here since anonymous function call cannot return multiple values, write the parameter of Q_t
+    DYNCST  = @(b,u,i) beliefDynCost(b,u,xf,nDT,full_DDP,mm,om,svc,map); % For iLQG
+    % DYNCST  = @(b,u,i) beliefDynCost_nonsmooth(b,u,xf,nDT,full_DDP,mm,om,svc,map); % For iLQG without visibility smoothing
+end   
 
 % control constraints are optional
 % Op.lims  = [-1.0 1.0;         % V forward limits (m/s)
 %     -1.0  1.0];        % angular velocity limits (m/s)
 % Op.lims  = mm.ctrlLim;        % Vy limits (m/s)
-Op.lims  = [];        % Vy limits (m/s)
+Op.lims = [];        % Vy limits (m/s)
 
 Op.plot = 1; % plot the derivatives as well
 
@@ -84,9 +91,14 @@ Op.D = mm.D;
 
 
 %% === run the optimization
-load_controller = 0;
-if load_controller
-    load(results_path);
+if strcmp(control_method, 'iLQG')
+    training_file_name = strcat(control_method, '_cost_', num2str(info_cost,3), '.mat');
+elseif strcmp(control_method, 'iLQG_AL')
+    training_file_name = strcat(control_method, '_cstr_', num2str(x_cstr_bound,3), '.mat');
+end
+training_file_path = strcat(trainPath, training_file_name);
+if isfile(training_file_path)
+    load(training_file_path);
     b = results.b;
     u_opt = results.u_opt;
     L_opt = results.L_opt;
@@ -96,8 +108,11 @@ if load_controller
     trace = results.trace;
     drawResult(plotFn, b, mm.stDim,mm.D)
 else
-    [b,u_opt,L_opt,~,~,optimCost,trace,~,tt, nIter]= iLQG(DYNCST, b0, u0, Op);
-%     [b,u_opt,L_opt,~,~,optimCost,trace,~,tt, nIter]= iLQG_AL(DYNCST, b0, u0, Op);
+    if strcmp(control_method, 'iLQG')
+        [b,u_opt,L_opt,~,~,optimCost,trace,~,tt, nIter]= iLQG(DYNCST, b0, u0, Op);
+    elseif strcmp(control_method, 'iLQG_AL')
+        [b,u_opt,L_opt,~,~,optimCost,trace,~,tt, nIter]= iLQG_AL(DYNCST, b0, u0, Op);
+    end
 end
 
 rh = [];
@@ -148,13 +163,12 @@ catch ME
 end
 
 
-
-try
-    save(strcat(outDatPath,'ilqg_results_1.mat'), 'results');
-catch ME
-    warning('Could not save results')
+if ~isfile(training_file_path)
+    try
+        save(training_file_path, 'results');
+    catch ME
+        warning('Could not save training result')
+    end
 end
 
 end
-
-

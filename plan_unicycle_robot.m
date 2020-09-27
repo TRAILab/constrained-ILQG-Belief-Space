@@ -4,7 +4,7 @@
 % and has a heading direction. A stereo camera is attached to the robot,
 % with the camera axis aligned with the heading
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function plan_unicycle_robot(mapPath, outDatPath)
+function plan_unicycle_robot(mapPath, trainPath, outDatPath)
 
 close all;
 
@@ -48,8 +48,8 @@ full_DDP = false;
 % these function is needed by iLQG_AL
 conFunc = @(b,u,k) constraintFunc(b,u,k);
 % DYNCST  = @(b,u,lagMultiplier, mu,k) beliefDynCostConstr(b,u,lagMultiplier, mu,k,xf,nDT,full_DDP,mm,om,svc,conFunc,map); % For iLQG_AL
-% DYNCST  = @(b,u,i) beliefDynCost(b,u,xf,nDT,full_DDP,mm,om,svc,map); % For iLQG
-DYNCST  = @(b,u,i) beliefDynCost_nonsmooth(b,u,xf,nDT,full_DDP,mm,om,svc,map); % For iLQG without visibility smoothing
+DYNCST  = @(b,u,i) beliefDynCost(b,u,xf,nDT,full_DDP,mm,om,svc,map); % For iLQG
+% DYNCST  = @(b,u,i) beliefDynCost_nonsmooth(b,u,xf,nDT,full_DDP,mm,om,svc,map); % For iLQG without visibility smoothing
 
 % control constraints are optional
 % Op.lims  = [-1.0 1.0;         % V forward limits (m/s)

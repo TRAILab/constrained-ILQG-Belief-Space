@@ -4,7 +4,7 @@ classdef quadrotorPlanar < MotionModelBase
     %   States are x,y,theta (-pi<theta<pi)
     %   Control inputs are v_x, v_y, theta_dot
     
-     properties (Constant = true) % note that all properties must be constant, because we have a lot of copies of this object and it can take a lot of memory otherwise.
+    properties (Constant = true) % note that all properties must be constant, because we have a lot of copies of this object and it can take a lot of memory otherwise.
         stDim = 3; % state dimension
         ctDim = 3;  % control vector dimension
         wDim = 3;   % Process noise (W) dimension
@@ -29,7 +29,7 @@ classdef quadrotorPlanar < MotionModelBase
                         0,0,0,0,0,0.5,0,0.5,0;
                         0,0,0,0,0,0,0,0,1;];
             
-     end
+    end
     
 
     methods

@@ -11,7 +11,6 @@ clear all
 clc
 % add subfolders to path
 % addpath(genpath('./'));
-fname = 'with_normals2';
 % clean up
 % clear variables; clc; close all; dbstop if error;
 
@@ -25,46 +24,62 @@ NUM_SIMS = 1;
 
 % which map to use
 % fname = 'mapTask3';
+fname = 'with_normals2';
 
 % create full path to map name
 mapFilePath = strcat('./Maps/',fname,'.mat');
 
-time = clock; % Gets the current time as a 6 element vector
+time = fix(clock); % Gets the current time as a 6 element vector
+time_stamp = [num2str(time(1)), num2str(time(2),'%02.f'), num2str(time(3),'%02.f'),'_',... % year, month, day
+    num2str(time(4),'%02.f'), num2str(time(5),'%02.f'), num2str(time(6),'%02.f')]; % hour, minute, second
 
-newFolderName = 'uni_iLQG_30_FoV_nonsmooth2';   
+robot_type = 'quad';
+% robot_type = 'uni';
+envSettingFolderName = strcat(robot_type, '_iLQG_30_FoV_nonsmooth2');
 
 % Lets check for platform type i.e., Windows, Linux and define base folder
 % accordingly base diretory where runs live
 if isunix ==1
     [~,username] = system('whoami');
-    baseDirectory = ['/home/',username(1:end-1),'/Research_code/bsp-ilqg-master/Results'];
+    % baseDirectory = ['/home/',username(1:end-1),'/Research_code/bsp-ilqg-master/Results'];
+    baseDirectory = './Results/';
     % Mac is unix so have to check here
     if ismac==1
         baseDirectory = ['/Users/',username(1:end-1),'/Documents/MATLAB/TRO/SingleHomotopy/'];
     end
 end
 
+% path to where data is written
+outDatPath = strcat(baseDirectory, envSettingFolderName, '/');
+trainPath = strcat('./Training/', envSettingFolderName, '/');
+
 % Create new directory
 if CREATE_OUTPUT_DIRECTORY
-    fstat = mkdir(baseDirectory,newFolderName);
-    
-    % if unsuccessful, exit
-    if fstat == 0
-        error('Could not create directory to save files');
+    if ~exist(outDatPath, 'dir')
+        fstat = mkdir(baseDirectory, envSettingFolderName);
+        % if unsuccessful, exit
+        if fstat == 0
+            error('Could not create directory to save files');
+        end
     end
-    
-end
 
-% path to where data is written
-outDatPath = strcat(baseDirectory,newFolderName,'/');
+    if ~exist(trainPath, 'dir')
+        fstat = mkdir(trainPath);
+    end
+end
 
 for i = 1:NUM_SIMS
     
     if CREATE_OUTPUT_DIRECTORY
-        mkdir(outDatPath,['run',num2str(i)]);
+        mkdir(outDatPath, [time_stamp,'_run',num2str(i)]);
     end
     
-    plan_unicycle_robot(mapFilePath, [outDatPath,'run',num2str(i),'/']);
-%     plan_quadPlane(mapFilePath, [outDatPath,'run',num2str(i),'/']);
+    outDatPathFull = strcat(outDatPath, time_stamp, '_run', num2str(i), '/');
+    if strcmp(robot_type, 'uni')
+        plan_unicycle_robot(mapFilePath, trainPath, outDatPathFull);
+    elseif strcmp(robot_type, 'quad')
+        plan_quadPlane(mapFilePath, trainPath, outDatPathFull);
+    end
+    
 end
 end
