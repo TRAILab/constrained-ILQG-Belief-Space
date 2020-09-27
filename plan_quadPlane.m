@@ -16,6 +16,7 @@ dt = 0.1; % time step
 control_method = 'iLQG_AL';
 
 load(mapPath); % load map
+[~,map_name,~] = fileparts(mapPath);
 
 mm = quadrotorPlanar(dt); % motion model
 
@@ -92,9 +93,9 @@ Op.D = mm.D;
 
 %% === run the optimization
 if strcmp(control_method, 'iLQG')
-    training_file_name = strcat(control_method, '_cost_', num2str(info_cost,3), '.mat');
+    training_file_name = strcat(control_method, '_cost_', num2str(info_cost,3), '_map_', map_name, '.mat');
 elseif strcmp(control_method, 'iLQG_AL')
-    training_file_name = strcat(control_method, '_cstr_', num2str(x_cstr_bound,3), '.mat');
+    training_file_name = strcat(control_method, '_cstr_', num2str(x_cstr_bound,3), '_map_', map_name, '.mat');
 end
 training_file_path = strcat(trainPath, training_file_name);
 if isfile(training_file_path)
