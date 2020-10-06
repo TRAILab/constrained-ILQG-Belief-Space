@@ -51,7 +51,8 @@ full_DDP = false;
 
 if strcmp(control_method, 'iLQG_AL')
     % these function is needed by iLQG_AL
-    x_cstr_bound = 0.25;
+    xy_cstr_bound = 0.36;
+    ang_cstr_bound = 0.25;
     conFunc = @(b,u,k) constraintFunc(b,u,k); % temporary fix here since anonymous function call cannot return multiple values, write the x direction constraint
     DYNCST  = @(b,u,lagMultiplier, mu,k) beliefDynCostConstr(b,u,lagMultiplier, mu,k,xf,nDT,full_DDP,mm,om,svc,conFunc,map); % For iLQG_AL
 elseif strcmp(control_method, 'iLQG')
@@ -95,10 +96,11 @@ Op.D = mm.D;
 if strcmp(control_method, 'iLQG')
     training_file_name = strcat(control_method, '_cost_', num2str(info_cost,3), '_map_', map_name, '.mat');
 elseif strcmp(control_method, 'iLQG_AL')
-    training_file_name = strcat(control_method, '_cstr_', num2str(x_cstr_bound,3), '_map_', map_name, '.mat');
+    training_file_name = strcat(control_method, '_cstr_', num2str(xy_cstr_bound,3), '_', num2str(ang_cstr_bound,3), '_map_', map_name, '.mat');
 end
 training_file_path = strcat(trainPath, training_file_name);
 if isfile(training_file_path)
+    fprintf('Training file found: %s', training_file_name)
     load(training_file_path);
     b = results.b;
     u_opt = results.u_opt;

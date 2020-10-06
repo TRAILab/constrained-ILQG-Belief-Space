@@ -24,7 +24,7 @@ NUM_SIMS = 1;
 
 % which map to use
 % fname = 'mapTask3';
-fname = 'with_normals2';
+fname = 'with_normals3';
 
 % create full path to map name
 mapFilePath = strcat('./Maps/',fname,'.mat');
