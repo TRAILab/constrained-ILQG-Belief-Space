@@ -19,8 +19,7 @@ classdef planar_stereoCamModel < ObservationModelBase
         C_cv = [0,-1,0;
                 0,0,-1;
                 1,0,0];
-        FoV = deg2rad(30);
-        max_alpha = deg2rad(90);
+        FoV = deg2rad(50);
         eps = 1e-7;
     end
     
@@ -81,16 +80,14 @@ classdef planar_stereoCamModel < ObservationModelBase
                 
         end
         
-        function [ y_j, isVisible ] = stereo_proj2D(obj, p_ji_i, x_rob)
+        function [ y_j, isVisible ] = stereo_proj2D(obj, p_ji_i, x)
             %STEREO_PROJ Stereo projection model
-            %inputs: p_ji_i - 2d point j in world frame, third dimension is
-            %                 point normal direction
+            %inputs: p_ji_i - 2d point j in world frame
             %        x - robot state (x y theta)
             %outputs: y_j - stereo pixel coordinates, only u_left and
             %               u_right since planar
-            th_vi = x_rob(3);
-            th_j = deg2rad(p_ji_i(3));
-            p_jc_i = p_ji_i(1:2) - x_rob(1:2);
+            th_vi = x(3);
+            p_jc_i = p_ji_i - x(1:2);
             p_jc_i = planar_stereoCamModel.to3D(p_jc_i);
             C_vi = [cos(th_vi),sin(th_vi),0;
                     -sin(th_vi), cos(th_vi),0;
@@ -108,18 +105,11 @@ classdef planar_stereoCamModel < ObservationModelBase
             y_j(1) = obj.f_u*x/z + obj.c_u;
             y_j(2) = obj.f_u*(x-obj.b)/z + obj.c_u;
             
-            %Calculate visibility, FoV
+            %Calculate visibility
             p_jc_c_norm = p_jc_c./norm(p_jc_c);
             theta = acos(p_jc_c_norm.'*[0;0;1]);
             
-            %Calculate visibility, parallax angle alpha
-            r_jk_i = -p_ji_i(1:2) + x_rob(1:2);
-            r_jk_i_norm = r_jk_i./norm(r_jk_i);
-            e_j = [cos(th_j);sin(th_j)];
-            
-            alpha = acos(r_jk_i_norm.'*e_j);
-            
-            if theta <= obj.FoV/2 && alpha <=obj.max_alpha/2
+            if theta <= obj.FoV/2
                 isVisible = 1;
             else
                 isVisible = 0;
@@ -153,7 +143,7 @@ classdef planar_stereoCamModel < ObservationModelBase
             T_cv = [obj.C_cv, zeros(3,1);
                         zeros(1,3),1];
             
-            p_ji_i = planar_stereoCamModel.to4D(p_ji_i(1:2));
+            p_ji_i = planar_stereoCamModel.to4D(p_ji_i);
             p_jc_c = T_cv*T_vi*p_ji_i;
             x = p_jc_c(1);
             y = p_jc_c(2);
@@ -169,7 +159,7 @@ classdef planar_stereoCamModel < ObservationModelBase
         
         function p_jc_c = tf2camera_frame(obj,p_ji_i, x)
             th_vi = x(3);
-            p_jc_i = p_ji_i(1:2) - x(1:2);
+            p_jc_i = p_ji_i - x(1:2);
             p_jc_i = planar_stereoCamModel.to3D(p_jc_i);
             C_vi = [cos(th_vi),sin(th_vi),0;
                     -sin(th_vi), cos(th_vi),0;
@@ -181,20 +171,12 @@ classdef planar_stereoCamModel < ObservationModelBase
             
         end
         
-        function p_vis = visibility_probability(obj,p_jc_c,p_ji_i, x)
+        function p_vis = visibility_probability(obj,p_jc_c,x)
             p_jc_c_norm = p_jc_c./norm(p_jc_c);
             theta = acos(p_jc_c_norm.'*[0;0;1]);
             
-            %Calculate visibility, parallax angle alpha
-            th_j = deg2rad(p_ji_i(3));
-            r_jk_i = -p_ji_i(1:2) + x(1:2);
-            r_jk_i_norm = r_jk_i./norm(r_jk_i);
-            e_j = [cos(th_j);sin(th_j)];
-            
-            alpha = acos(r_jk_i_norm.'*e_j);
-            
-            if theta <= obj.FoV/2 && alpha <=obj.max_alpha/2
-                p_vis = 0.5*(cos(pi*theta/(obj.FoV/2)) + 1)*0.5*(cos(pi*alpha/(obj.max_alpha/2)) + 1);
+            if theta <= obj.FoV/2
+                p_vis = 0.5*(cos(pi*theta/(obj.FoV/2)) + 1);
             else
                 p_vis = 0;
             end
@@ -213,7 +195,7 @@ classdef planar_stereoCamModel < ObservationModelBase
            for j = 1:length(obj.landmarkIDs)
                 p_ji_i = obj.landmarkPoses(:,j);
                 p_jc_c = tf2camera_frame(obj,p_ji_i, x);
-                p_vis_j = obj.visibility_probability(p_jc_c,p_ji_i,x);
+                p_vis_j = obj.visibility_probability(p_jc_c,x);
                 R(j*obj.obsDim-1:j*obj.obsDim,j*obj.obsDim-1:j*obj.obsDim) =...
                         (1/(p_vis_j+obj.eps)).*R(j*obj.obsDim-1:j*obj.obsDim,j*obj.obsDim-1:j*obj.obsDim);
            end
@@ -228,7 +210,7 @@ classdef planar_stereoCamModel < ObservationModelBase
            for j = 1:length(obj.landmarkIDs)
                 p_ji_i = obj.landmarkPoses(:,j);
                 p_jc_c = tf2camera_frame(obj,p_ji_i, x);
-                p_vis_j = obj.visibility_probability(p_jc_c,p_ji_i,x);
+                p_vis_j = obj.visibility_probability(p_jc_c,x);
                 R_inv(j*obj.obsDim-1:j*obj.obsDim,j*obj.obsDim-1:j*obj.obsDim) =...
                         p_vis_j.*R_inv(j*obj.obsDim-1:j*obj.obsDim,j*obj.obsDim-1:j*obj.obsDim);
            end

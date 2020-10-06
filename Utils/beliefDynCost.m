@@ -63,11 +63,11 @@ else
     
     %% First derivative of sigmaToCollide (jacobian of sigma[b])
     tStart = tic;
-    xu_sigma =  @(x) sigmaToCollide2(x, motionModel.stDim, motionModel.D,map);
+    xu_sigma =  @(x) sigmaToCollide(x, motionModel.stDim, motionModel.D,collisionChecker);
     dsigma_db  = squeeze(finiteDifference(xu_sigma, b,1e-2)); % need to have a large step size to see derivative in collision
     dsigma_db = [dsigma_db;zeros(motionModel.ctDim,size(dsigma_db,2))]; % jacobian w.r.t u is zero for collision
     
-    nSigma = sigmaToCollide2(b, motionModel.stDim, motionModel.D, map);
+    nSigma = sigmaToCollide(b, motionModel.stDim, motionModel.D, collisionChecker);
     fprintf('Time to do sigma derivative and compute sigma: %f seconds\n', toc(tStart))
     
     %% cost first derivatives
@@ -76,7 +76,7 @@ else
     
     % construct Jacobian adding collision cost
     for i = 1:size(dsigma_db,2)               
-        J(:,i) = J(:,i) + 350.*((-1/2)/(exp(nSigma(i)/2)-1)) * dsigma_db(:,i);
+        J(:,i) = J(:,i) + 300.*((-1/2)/(exp(nSigma(i)/2)-1)) * dsigma_db(:,i);
     end
     
     cb      = J(ib,:);
@@ -94,7 +94,7 @@ else
     % construct Hessian adding collision cost
     for i = 1:size(dsigma_db,2)
         jjt = dsigma_db(:,i)*dsigma_db(:,i)';        
-        JJ(:,:,i) = JJ(:,:,i) + 350.*((1/4)*exp(nSigma(i)/2)/(exp(nSigma(i)/2)-1)^2) * 0.5*(jjt+jjt');
+        JJ(:,:,i) = JJ(:,:,i) + 300.*((1/4)*exp(nSigma(i)/2)/(exp(nSigma(i)/2)-1)^2) * 0.5*(jjt+jjt');
     end
     
     cbb     = JJ(ib,ib,:);

@@ -1,4 +1,4 @@
-function [failed, b_traj_t, roboTraj,trCov_vs_time, u_actual] = animate(figh, plotFn, b0, b_nom, u_nom, L, motionModel, obsModel, stateValidityChecker, map, DYNAMIC_OBS)
+function [failed, b_traj_t, roboTraj,trCov_vs_time, u_actual] = animate(figh, plotFn, b0, b_nom, u_nom, L, motionModel, obsModel, stateValidityChecker, DYNAMIC_OBS)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Animate the robot's motion from start to goal
 %
@@ -154,12 +154,11 @@ for i = 1:size(u_nom,2)
     pause(0.05);
 end
 
-constr_values = constraintFunc(b_traj_t(:,2:end), u_actual, 1:size(u_nom,2));
+distTrajToObs
 fprintf(['\n'...
-        'max constraint violation: %-12.7g\n' ...
         'min distance to obstacle: %-12.7g\n' ...
         'trajectory length: %-12.7g\n'], ...
-        max(constr_values), min(distTrajToObs), trajLength);
+        min(distTrajToObs), trajLength);
 
 figure(figh);
 sg = plot(roboTraj(1,:),roboTraj(2,:),'g', 'LineWidth',2);

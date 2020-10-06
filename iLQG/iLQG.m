@@ -86,9 +86,9 @@ function [x, u, L, Vx, Vxx, cost, trace, stop, totaTime, totalIterations] = iLQG
 defaults = {'lims',           [],...            control limits
             'parallel',       false,...          use parallel line-search?
             'Alpha',          10.^linspace(0,-3,11),... backtracking coefficients
-            'tolFun',         1e-3,...          reduction exit criterion
+            'tolFun',         1e-1,...          reduction exit criterion
             'tolGrad',        1e-4,...          gradient exit criterion
-            'maxIter',        25,...           maximum iterations            
+            'maxIter',        15,...           maximum iterations            
             'lambda',         1,...             initial value for lambda
             'dlambda',        1,...             initial value for dlambda
             'lambdaFactor',   1.4,...           lambda scaling factor
@@ -135,7 +135,7 @@ dlambda  = Op.dlambda;
 % --- initialize trace data structure
 trace = struct('iter',nan,'lambda',nan,'dlambda',nan,'cost',nan,...
         'alpha',nan,'grad_norm',nan,'improvement',nan,'reduc_ratio',nan,...
-        'time_derivs',nan,'time_forward',nan,'time_backward',nan,'init_cost',nan);
+        'time_derivs',nan,'time_forward',nan,'time_backward',nan);
 trace = repmat(trace,[min(Op.maxIter,1e6) 1]);
 trace(1).iter = 1;
 trace(1).lambda = lambda;
@@ -169,8 +169,6 @@ else
 end
 
 trace(1).cost = sum(cost(:));
-init_cost = sum(cost(:));
-trace(1).init_cost = init_cost;
 
 % user plotting
 drawResult(Op.plotFn,x,3,Op.D);
@@ -199,7 +197,7 @@ t_start     = tic;
 if verbosity > 0
     fprintf('\n=========== begin iLQG ===========\n');
 end
-graphics(Op.plot,x,u,cost,zeros(m,n,N),[],[],[],[],[],[],trace,1,init_cost);
+graphics(Op.plot,x,u,cost,zeros(m,n,N),[],[],[],[],[],[],trace,1);
 for iter = 1:Op.maxIter
     if stop
         break;
@@ -358,7 +356,7 @@ for iter = 1:Op.maxIter
     trace(iter).improvement = dcost;
     trace(iter).cost        = sum(cost(:));
     trace(iter).reduc_ratio = z;
-    stop = graphics(Op.plot,x,u,cost,L,Vx,Vxx,fx,fxx,fu,fuu,trace(1:iter),0,init_cost);
+    stop = graphics(Op.plot,x,u,cost,L,Vx,Vxx,fx,fxx,fu,fuu,trace(1:iter),0);
 end
 
 % save lambda/dlambda
@@ -406,7 +404,7 @@ if ~isempty(iter)
     totaTime = total_t;
     trace    = trace(~isnan([trace.iter]));
 %     timing   = [diff_t back_t fwd_t total_t-diff_t-back_t-fwd_t];
-    graphics(Op.plot,x,u,cost,L,Vx,Vxx,fx,fxx,fu,fuu,trace,2, init_cost); % draw legend
+    graphics(Op.plot,x,u,cost,L,Vx,Vxx,fx,fxx,fu,fuu,trace,2); % draw legend
 else
     error('Failure: no iterations completed, something is wrong.')
 end
@@ -561,7 +559,7 @@ end
 
 
 
-function  stop = graphics(figures,x,u,cost,L,Vx,Vxx,fx,fxx,fu,fuu,trace,init, init_cost)
+function  stop = graphics(figures,x,u,cost,L,Vx,Vxx,fx,fxx,fu,fuu,trace,init)
 stop = 0;
 
 if figures == 0
@@ -622,17 +620,14 @@ if figures ~= 0  && ( mod(mT,figures) == 0 || init == 2 )
     xlabel 'timesteps'
     
     ax1      = subplot(2,2,2);
-    set(ax1,'XAxisL','bottom','YAxisL','left','xlim',[0 mT+1],'Ygrid','on','YMinorGrid','off')
-    hV = line([0,T],[init_cost, trace(T).cost],'linewidth',4,'color',.5*[1 1 1]);
-%     ax2 = axes('Position',get(ax1,'Position'));
-%     converge = [[trace(T).lambda]' [trace(T).alpha]' [trace(T).grad_norm]' [trace(T).improvement]'];
-%     hT = semilogy(T,max(0, converge),'.-','linewidth',2,'markersize',10);
-%     set(ax2,'xlim',[1 mT+eps],'Ygrid','on','YMinorGrid','off','color','none');
-%     set(ax1,'Position',get(ax2,'Position'));
-%     double_title(ax1,ax2,'convergence trace','total cost')
-    xlabel 'iterations'
-    title('Convergence Plot')
-
+    set(ax1,'XAxisL','top','YAxisL','right','xlim',[1 mT+eps],'xtick',[])
+    hV = line(T,[trace(T).cost],'linewidth',4,'color',.5*[1 1 1]);
+    ax2 = axes('Position',get(ax1,'Position'));
+    converge = [[trace(T).lambda]' [trace(T).alpha]' [trace(T).grad_norm]' [trace(T).improvement]'];
+    hT = semilogy(T,max(0, converge),'.-','linewidth',2,'markersize',10);
+    set(ax2,'xlim',[1 mT+eps],'Ygrid','on','YMinorGrid','off','color','none');
+    set(ax1,'Position',get(ax2,'Position'));
+    double_title(ax1,ax2,'convergence trace','total cost')
     
     subplot(2,2,4);
 %     plot(T,[trace(T).reduc_ratio]','.-','linewidth',2);
@@ -724,9 +719,8 @@ end
 if init == 1
     figure(fig1);
 elseif init == 2
-%     strings  = {'Cost','\lambda','\alpha','\partial_uV','\Delta{V}'};
-    strings  = {'Cost'};
-    legend(hV,strings,'Location','Best');
+    strings  = {'V','\lambda','\alpha','\partial_uV','\Delta{V}'};
+    legend([hV; hT],strings,'Location','Best');
 end
 
 drawnow;
