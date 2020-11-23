@@ -91,7 +91,7 @@ defaults = {'lims',           [],...            control limits
             'tolConstr',      1e-3,...          constraint satisfaction criterion
             'maxIter',        15,...            maximum iterations
             'maxIterOuter',   15,...             maximum outer loop iterations  
-            'lambda',         1,...             initial value for lambda
+            'lambda',         1e-2,...             initial value for lambda
             'dlambda',        1,...             initial value for dlambda
             'lambdaFactor',   1.4,...           lambda scaling factor
             'lambdaMax',      1e2,...          lambda maximum value

@@ -65,7 +65,7 @@ function cost = evaluateCost(b, u, lagMultiplier, mu, goal,  stDim, L, stateVali
     P = reshape(vecP,stDim,stDim); % Covariance Matrix
 
     Q_t = 300*eye(stDim); % penalize uncertainty
-    R_t = 2*eye(ctrlDim); % penalize control effort
+    R_t = 4*eye(ctrlDim); % penalize control effort
 %     R_t(3,3) = 1;
     Q_l = 100*L*eye(stDim); % penalize terminal error
     Q_l(3,3) = 0;
@@ -125,7 +125,7 @@ function cost = evaluateCost(b, u, lagMultiplier, mu, goal,  stDim, L, stateVali
         nSigma = sigmaToCollide2(b,stDim,D,map);
     %     cc = sum(exp(-nSigma));
 %         nSigma = sigmaToCollide(b,stDim,D,stateValidityChecker);
-        cc = log(chi2cdf(nSigma^2, stDim-1));   
+        cc = -log(chi2cdf(nSigma^2, stDim-1));   
 
       end
     else
@@ -137,7 +137,7 @@ function cost = evaluateCost(b, u, lagMultiplier, mu, goal,  stDim, L, stateVali
 
 
 
-    cost = sc + uc + 300*w_cc*cc + pc;
+    cost = sc + uc + 350*w_cc*cc + pc;
 
 end
 
