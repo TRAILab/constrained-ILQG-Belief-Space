@@ -24,7 +24,7 @@ NUM_SIMS = 1;
 
 % which map to use
 % fname = 'mapTask3';
-fname = 'with_normals4';
+fname = 'with_normals3';
 
 % create full path to map name
 mapFilePath = strcat('./Maps/',fname,'.mat');
@@ -32,10 +32,10 @@ mapFilePath = strcat('./Maps/',fname,'.mat');
 time = fix(clock); % Gets the current time as a 6 element vector
 timeStamp = [num2str(time(1)), num2str(time(2),'%02.f'), num2str(time(3),'%02.f'),'_',... % year, month, day
     num2str(time(4),'%02.f'), num2str(time(5),'%02.f'), num2str(time(6),'%02.f')]; % hour, minute, second
- 
+
 robotType = 'quad';
 % robotType = 'uni';
-envSettingFolderName = strcat(robotType, '_iLQG_1');
+envSettingFolderName = strcat(robotType, '_iLQG_FoV_30');
 
 % Lets check for platform type i.e., Windows, Linux and define base folder
 % accordingly base diretory where runs live
@@ -51,11 +51,11 @@ end
 
 % path to where data is written
 outDatPath = strcat(baseDirectory, envSettingFolderName, '/');
-trainPath = strcat('./Results_test/', envSettingFolderName, '/');
+trainPath = strcat('./Training/', envSettingFolderName, '/');
 
 % Create new directory
 if CREATE_OUTPUT_DIRECTORY
-    if ~exist(outDatPath, 'dir')c
+    if ~exist(outDatPath, 'dir')
         fstat = mkdir(baseDirectory, envSettingFolderName);
         % if unsuccessful, exit
         if fstat == 0

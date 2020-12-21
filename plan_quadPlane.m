@@ -38,6 +38,7 @@ xf = map.goal; % target state
 
 %% Setup planner to get nominal controls
 
+
 [x_traj0,u0, initGuessFigure] = initial_rollout_quad(map,mm,[],85);
 nDT = size(u0,2); % Time steps
 
@@ -47,16 +48,17 @@ nDT = size(u0,2); % Time steps
 % dynamics. This will make iterations more expensive, but
 % final convergence will be much faster (quadratic)
 full_DDP = false;
-conFunc = @(b,u,k) constraintFunc(b,u,k);
+
 if strcmp(control_method, 'iLQG_AL')
     % these function is needed by iLQG_AL
     xy_cstr_bound = 0.36;
-    ang_cstr_bound = 0.25; % temporary fix here since anonymous function call cannot return multiple values, write the x direction constraint
+    ang_cstr_bound = 0.25;
+    conFunc = @(b,u,k) constraintFunc(b,u,k); % temporary fix here since anonymous function call cannot return multiple values, write the x direction constraint
     DYNCST  = @(b,u,lagMultiplier, mu,k) beliefDynCostConstr(b,u,lagMultiplier, mu,k,xf,nDT,full_DDP,mm,om,svc,conFunc,map); % For iLQG_AL
 elseif strcmp(control_method, 'iLQG')
     info_cost = 1000; % temporary fix here since anonymous function call cannot return multiple values, write the parameter of Q_t
-%     DYNCST  = @(b,u,i) beliefDynCost(b,u,xf,nDT,full_DDP,mm,om,svc,map); % For iLQG
-    DYNCST  = @(b,u,i) beliefDynCost_nonsmooth(b,u,xf,nDT,full_DDP,mm,om,svc,map); % For iLQG without visibility smoothing
+    DYNCST  = @(b,u,i) beliefDynCost(b,u,xf,nDT,full_DDP,mm,om,svc,map); % For iLQG
+    % DYNCST  = @(b,u,i) beliefDynCost_nonsmooth(b,u,xf,nDT,full_DDP,mm,om,svc,map); % For iLQG without visibility smoothing
 end   
 
 % control constraints are optional
@@ -120,9 +122,7 @@ rh = [];
 lh = [];
 for k = 1:length(b(1,:))
     x_mean = b(1:3,k);
-    if mod(k-1,2) == 0
-        drawFoV(figh,om,x_mean,rh,lh);
-    end
+    drawFoV(figh,om,x_mean,rh,lh);
     pause(0.1)
 end
 

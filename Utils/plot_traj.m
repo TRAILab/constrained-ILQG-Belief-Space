@@ -4,7 +4,7 @@ function plot_traj(b_nom, b_traj_t, roboTraj,dt, constr_func, outDatPath)
     %%  Plotting
     
 % Retrieve Constraint values
-constr_val = 3.*sqrt(-constr_func(zeros(length(b_nom(:,1)),1),0,7));
+constr_val = 3.*sqrt(-constr_func(zeros(length(b_nom(:,1)),1),0,5));
 
 t = dt.*[1:1:length(b_nom)];
 figh = figure;
@@ -27,8 +27,8 @@ set(get(get(ph,'Annotation'),'LegendInformation'),'IconDisplayStyle','off');
 % legend({'$\tilde{x}$','$3 nominal \sigma$ bounds','$\hat{x}$','$3 actual \sigma$ bounds'},'Interpreter','Latex')
 
 % Plot constraints
-plot([t(4),t(end)],[constr_val(1),constr_val(1)],'m--');
-ph = plot([t(4),t(end)],[-constr_val(1),-constr_val(1)],'m--');
+plot([t(1),t(end)],[constr_val(1),constr_val(1)],'m--');
+ph = plot([t(1),t(end)],[-constr_val(1),-constr_val(1)],'m--');
 set(get(get(ph,'Annotation'),'LegendInformation'),'IconDisplayStyle','off');
 legend({'nominal $3\sigma$ bounds','$\hat{e}_x$','actual $3\sigma$ bounds', 'Constraint on $3\sigma$ bound'},'Interpreter','Latex')
 
@@ -61,8 +61,8 @@ set(get(get(ph,'Annotation'),'LegendInformation'),'IconDisplayStyle','off');
 % legend({'$\tilde{x}$','$3 nominal \sigma$ bounds','$\hat{x}$','$3 actual \sigma$ bounds'},'Interpreter','Latex')
 
 % Plot constraints
-plot([t(4),t(end)],[constr_val(2),constr_val(2)],'m--');
-ph = plot([t(4),t(end)],[-constr_val(2),-constr_val(2)],'m--');
+plot([t(1),t(end)],[constr_val(2),constr_val(2)],'m--');
+ph = plot([t(1),t(end)],[-constr_val(2),-constr_val(2)],'m--');
 set(get(get(ph,'Annotation'),'LegendInformation'),'IconDisplayStyle','off');
 
 legend({'nominal $3\sigma$ bounds','$\hat{e}_y$','actual $3\sigma$ bounds','Constraint on $3\sigma$ bound'},'Interpreter','Latex')
@@ -89,8 +89,8 @@ set(get(get(ph,'Annotation'),'LegendInformation'),'IconDisplayStyle','off');
 % legend({'$\tilde{x}$','$3 nominal \sigma$ bounds','$\hat{x}$','$3 actual \sigma$ bounds'},'Interpreter','Latex')
 
 % Plot constraints
-plot([t(4),t(end)],[constr_val(3),constr_val(3)],'m--');
-ph = plot([t(4),t(end)],[-constr_val(3),-constr_val(3)],'m--');
+plot([t(1),t(end)],[constr_val(3),constr_val(3)],'m--');
+ph = plot([t(1),t(end)],[-constr_val(3),-constr_val(3)],'m--');
 set(get(get(ph,'Annotation'),'LegendInformation'),'IconDisplayStyle','off');
 
 legend({'nominal $3\sigma$ bounds','$\hat{e}_x$','actual $3\sigma$ bounds','Constraint on $3\sigma$ bound'},'Interpreter','Latex')

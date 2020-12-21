@@ -54,7 +54,7 @@ P = reshape(vecP,stDim,stDim); % Covariance Matrix
 
 Q_t = 1000*eye(stDim); % penalize uncertainty
 R_t = 4*eye(ctrlDim); % penalize control effort
-%  R_t(3,3) = 1;
+% R_t(3,3) = 1;
 Q_l = 100*L*eye(stDim); % penalize terminal error
 Q_l(3,3) = 0;
 w_cc = 1.0; % penalize collision
@@ -113,7 +113,7 @@ if ~isempty(varargin)
 %     cc = sum(exp(-nSigma));
 %     nSigma = sigmaToCollide(b,stDim,D,stateValidityChecker);
     nSigma = sigmaToCollide2(b,stDim,D,map);
-    cc = -log(chi2cdf(nSigma^2, stDim-1));   
+    cc = log(chi2cdf(nSigma^2, stDim-1));   
 
   end
 else
