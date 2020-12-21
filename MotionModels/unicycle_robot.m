@@ -73,8 +73,8 @@ classdef unicycle_robot < MotionModelBase
             c = cos(x(3));
             s = sin(x(3));
             d_t = obj.dt;
-            G = d_t.*[c, 0;
-                       s, 0;
+            G = d_t.*[c + 0.001, 0;
+                       s + 0.001, 0;
                        0, 1];
 %             G = [c, 0;
 %            s, 0;

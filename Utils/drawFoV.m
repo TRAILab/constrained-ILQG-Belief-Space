@@ -10,7 +10,7 @@ function [rh,lh] = drawFoV(fig, meas_model,x,rh,lh)
     hold on;
     
     theta = x(3);
-    r = 3;
+    r = 1.5;
     
     %draw max u line
     FoV = meas_model.FoV;
