@@ -39,6 +39,7 @@ else
     ib = 1:beliefDim;
     iu = beliefDim+1:beliefDim+ctDim;
     
+    tStart = tic;
     % dynamics first derivatives
     xu_dyn  = @(xu) beliefDynamics(xu(ib,:),xu(iu,:),motionModel, obsModel);
     J       = finiteDifference(xu_dyn, [b; u]);
@@ -58,6 +59,7 @@ else
         [gbb,gbu,guu] = deal([]);
     end
     
+    fprintf('Time to do dynamics Jacobians: %f seconds\n', toc(tStart))
 %      if motionModel.stDim ~= 2
 %         error('This partial of f w.r.t sigma is only valid for robot with state dimension 2')
 %      end
@@ -71,9 +73,10 @@ else
     
     %nSigma = sigmaToCollide(b, motionModel.stDim, motionModel.D, collisionChecker);
     nSigma = sigmaToCollide2(b, motionModel.stDim, motionModel.D, map);
-    fprintf('Time to do sigma derivative and compute sigma: %f seconds\n', toc(tStart))
+%     fprintf('Time to do sigma derivative and compute sigma: %f seconds\n', toc(tStart))
     
     %% cost first derivatives
+    tStart = tic;
     J = zeros(beliefDim + ctDim,L+1);
     for i = 1:L+1
         xu_cost = @(xu) aug_lagrangian(xu(ib,:),xu(iu,:),lagMultiplier(:,i), mu(:,i), xf, L,motionModel.stDim, collisionChecker,conFunc, map,motionModel.D,i,0);    
@@ -88,10 +91,11 @@ else
     
     cb      = J(ib,:);
     cu      = J(iu,:);
+%     fprintf('Time to do cost Jacobian: %f seconds\n', toc(tStart))
     
     %% cost second derivatives
     
-    
+    tStart = tic;
     % first calculate Hessian excluding collision cost
     JJ = zeros(beliefDim + ctDim,beliefDim + ctDim,L+1);
     for i = 1:L+1
@@ -111,7 +115,8 @@ else
     cbb     = JJ(ib,ib,:);
     cbu     = JJ(ib,iu,:);
     cuu     = JJ(iu,iu,:);            
-
+%     fprintf('Time to do cost Hessian: %f seconds\n', toc(tStart))
+    
     [g,c,constr_values] = deal([]);
 end
 end
