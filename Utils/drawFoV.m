@@ -14,8 +14,20 @@ function [rh,lh] = drawFoV(fig, meas_model,x,rh,lh)
     
     %draw max u line
     FoV = meas_model.FoV;
-    rh = line([x(1);x(1) + r*cos(theta-(FoV/2))],[x(2);x(2) + r*sin(theta-(FoV/2))],'Color','red','LineStyle','--');
-    lh = line([x(1);x(1) + r*cos(theta+(FoV/2))],[x(2);x(2) + r*sin(theta+(FoV/2))],'Color','red','LineStyle','--');
+    if meas_model.obsDim == 2
+        rh = line([x(1);x(1) + r*cos(theta-(FoV/2))],[x(2);x(2) + r*sin(theta-(FoV/2))],'Color','red','LineStyle','--');
+        lh = line([x(1);x(1) + r*cos(theta+(FoV/2))],[x(2);x(2) + r*sin(theta+(FoV/2))],'Color','red','LineStyle','--');
+    else
+        phi = x(4);
+        psi = x(5);
+        
+        pan = theta + phi;
+        rh = line([x(1);x(1) + r*cos(theta-(FoV/2))],[x(2);x(2) + r*sin(theta-(FoV/2))],...
+                        [0;-r*sin(psi)],'Color','red','LineStyle','--');
+        lh = line([x(1);x(1) + r*cos(theta+(FoV/2))],[x(2);x(2) + r*sin(theta+(FoV/2))],...
+                        [0;-r*sin(psi)],'Color','red','LineStyle','--');
+    end
+        
     set(get(get(rh,'Annotation'),'LegendInformation'),'IconDisplayStyle','off');
     set(get(get(lh,'Annotation'),'LegendInformation'),'IconDisplayStyle','off');
     
