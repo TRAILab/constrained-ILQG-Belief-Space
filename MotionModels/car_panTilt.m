@@ -1,47 +1,75 @@
-classdef unicycle_robot < MotionModelBase
-    %UNICYCLE_ROBOT Class definition for a unicycle robot
-    %   Detailed explanation goes here
+classdef car_panTilt < MotionModelBase
+    %UNICYCLE_ROBOT Class definition for a car robot with a pan-tilt camera
+    %   state x is assumed to be [x_pos,y_pos,theta,phi,psi]
+    %   theta - heading of robot on plane
+    %   phi - pan angle
+    %   psi - tilt angle
     
     properties (Constant = true) % note that all properties must be constant, because we have a lot of copies of this object and it can take a lot of memory otherwise.
-        stDim = 3; % state dimension
-        ctDim = 2;  % control vector dimension
-        wDim = 2;   % Process noise (W) dimension
-        P_Wg = diag(([0.2,0.07]./3).^2); % covariance of state-additive-noise
+        stDim = 5; % state dimension
+        ctDim = 4;  % control vector dimension
+        wDim = 4;   % Process noise (W) dimension
+        P_Wg = diag(([0.2,0.07,0.05,0.05]./3).^2); % covariance of state-additive-noise
         sigma_b_u = 0; % A constant bias intensity (covariance) of the control noise
         eta_u = 0; % A coefficient, which makes the control noise intensity proportional to the control signal       
-        zeroNoise = [0;0];
+        zeroNoise = [0;0;0;0];
         ctrlLim = [-5.0 5.0;-90*pi/180 90*pi/180]; % control limits
         turn_radius_min = 1.5*0.1; % indeed we need to define the minimum linear velocity in turnings (on orbits) and then find the minimum radius accordingly. But, we picked the more intuitive way.
         angular_velocity_max = 90*pi/180; % degree per second (converted to radian per second)
         linear_velocity_max = 0.5*10;
         linear_velocity_min_on_orbit = unicycle_robot.turn_radius_min*unicycle_robot.angular_velocity_max; % note that on the straight line the minimum velocity can go to zero. But, in turnings (on orbit) the linear velocity cannot fall below this value.
-
+       % D = []; % Duplication matrix for creating full vectorized covariance matrix from diagnoal and below elements
+%         D_psuedoinv = [1,0,0,0,0,0,0,0,0;
+%                         0,0.5,0,0.5,0,0,0,0,0;
+%                         0,0,0.5,0,0,0,0.5,0,0;
+%                         0,0,0,0,1,0,0,0,0;
+%                         0,0,0,0,0,0.5,0,0.5,0;
+%                         0,0,0,0,0,0,0,0,1;];
     end
     
 
     methods
-        function obj = unicycle_robot(dt)
+        function obj = car_panTilt(dt)
             obj@MotionModelBase();      
             obj.dt = dt;
-            obj.D = [1,0,0,0,0,0;
-             0,1,0,0,0,0;
-             0,0,1,0,0,0;
-             0,1,0,0,0,0;
-             0,0,0,1,0,0;
-             0,0,0,0,1,0;
-             0,0,1,0,0,0;
-             0,0,0,0,1,0;
-             0,0,0,0,0,1;]; % Duplication matrix for creating full vectorized covariance matrix from diagnoal and below elements
-            obj.D_pseudoinv = [1,0,0,0,0,0,0,0,0;
-                        0,0.5,0,0.5,0,0,0,0,0;
-                        0,0,0.5,0,0,0,0.5,0,0;
-                        0,0,0,0,1,0,0,0,0;
-                        0,0,0,0,0,0.5,0,0.5,0;
-                        0,0,0,0,0,0,0,0,1;];
+            n=5;
+            % Duplication matrix: vec(P)=Dvech(P)
+            m=1/2*n*(n+1);
+            nsq=n^2;
+            DT=sparse(m,nsq);
+            for j=1:n
+                for i=j:n
+                    ijth=(j-1)*n+i;
+                    jith=(i-1)*n+j;
+                    vecTij=sparse(ijth,1,1,nsq,1);
+                    vecTij(jith,1)=1;
+                    k=(j-1)*n+i-1/2*j*(j-1);
+                    uij=sparse(k,1,1,m,1);
+                    DT=DT+uij*vecTij';
+                end
+            end
+            D=DT';
+            obj.D = full(D);
+            obj.D_pseudoinv = (D'*D)\(D');
+
         end
         
         
         function x_next = evolve(obj,x,u,w) % discrete motion model equation
+%             Un = w(1:unicycle_robot.ctDim); % The size of Un may be different from ctDim in some other model.
+%             Wg = w(Unicycle_robot.ctDim+1 : Unicycle_robot.wDim); % The size of Wg may be different from stDim in some other model.
+            c = cos(x(3));
+            s = sin(x(3));
+            d_t = obj.dt;
+            x_next = x + d_t.*[c,0,0,0;
+                               s,0,0,0;
+                               0,1,0,0;
+                               0,0,1,0;
+                               0,0,0,1]*(u+w);
+            
+        end
+        
+        function x_next = evolve_unicycle(obj,x,u,w) % discrete motion model equation
 %             Un = w(1:unicycle_robot.ctDim); % The size of Un may be different from ctDim in some other model.
 %             Wg = w(Unicycle_robot.ctDim+1 : Unicycle_robot.wDim); % The size of Wg may be different from stDim in some other model.
             c = cos(x(3));
@@ -55,18 +83,22 @@ classdef unicycle_robot < MotionModelBase
             c = cos(x(3));
             s = sin(x(3));
             d_t = obj.dt;
-            A = [1, 0, -d_t*(u(1)+w(1))*s;
-                  0, 1,  d_t*(u(1)+w(1))*c;
-                  0, 0, 1];
+            A = [1, 0, -d_t*(u(1)+w(1))*s,0,0;
+                  0, 1,  d_t*(u(1)+w(1))*c,0,0;
+                  0, 0, 1, 0,0 ;
+                  0, 0, 0, 1, 0;
+                  0, 0, 0, 0, 1];
         end
         
         function B = getControlJacobian(obj,x,u,w) % control Jacobian
             c = cos(x(3));
             s = sin(x(3));
             d_t = obj.dt;
-            B = d_t.*[c, 0;
-                       s, 0;
-                       0, 1];
+            B = d_t.*[c,0,0,0;
+                      s,0,0,0;
+                      0,1,0,0;
+                      0,0,1,0;
+                      0,0,0,1];
             
         end
         
@@ -74,9 +106,11 @@ classdef unicycle_robot < MotionModelBase
             c = cos(x(3));
             s = sin(x(3));
             d_t = obj.dt;
-            G = d_t.*[c + 0.001, 0;
-                       s + 0.001, 0;
-                       0, 1];
+            G = d_t.*[c+0.001,0,0,0;
+                      s+0.001,0,0,0;
+                      0,1,0,0;
+                      0,0,1,0;
+                      0,0,0,1];
 %             G = [c, 0;
 %            s, 0;
 %            0, 1];
@@ -149,7 +183,7 @@ classdef unicycle_robot < MotionModelBase
             w_zero = zeros(unicycle_robot.wDim,1); % no noise
             x_pre(:,1) = x_initial;
             for k=1:kf_pre
-                x_pre(:,k+1) = obj.evolve(x_pre(:,k),u_pre(:,k),w_zero);
+                x_pre(:,k+1) = obj.evolve_unicycle(x_pre(:,k),u_pre(:,k),w_zero);
                 %                 tmp = state(x_pre(:,k+1));tmp.draw(); % FOR DEBUGGING
             end
 
@@ -163,7 +197,7 @@ classdef unicycle_robot < MotionModelBase
             u_post = [-V_post; -omega_post];
             x_post(:,kf_post+1) = x_final;
             for k=kf_post+1:-1:2 % calculate in reverse order, from x_final
-                x_post(:,k-1) = obj.evolve(x_post(:,k),u_post(:,k-1),w_zero);
+                x_post(:,k-1) = obj.evolve_unicycle(x_post(:,k),u_post(:,k-1),w_zero);
                 %                 tmp = state(x_post(:,k+1));tmp.draw(); % FOR DEBUGGING
             end
 
@@ -177,7 +211,7 @@ classdef unicycle_robot < MotionModelBase
             u_line = [V_line; omega_line];
             x_line(:,1) = x_pre(:,kf_pre+1);
             for k=1:kf_line
-                x_line(:,k+1) = obj.evolve(x_line(:,k),u_line(:,k),w_zero);
+                x_line(:,k+1) = obj.evolve_unicycle(x_line(:,k),u_line(:,k),w_zero);
                 %                 tmp = state(x_line(:,k+1));tmp.draw(); % FOR DEBUGGING
             end
             

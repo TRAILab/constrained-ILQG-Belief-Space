@@ -18,6 +18,7 @@ classdef pantilt_stereoCamModel < ObservationModelBase
         c_v = 247.4814;
         b = 0.24;
         var = [37.9799470231445;129.835565602725;41.9527461930872;132.489132838227];
+        encoder_std = deg2rad(5/3);
         C_cv = [0,-1,0;
                 0,0,-1;
                 1,0,0];
@@ -50,8 +51,8 @@ classdef pantilt_stereoCamModel < ObservationModelBase
                         error('unknown inputs')                
                 end
                 
-                z = zeros(length(obj.landmarkIDs)*obj.obsDim,1);
-                vis = zeros(length(obj.landmarkIDs)*obj.obsDim,1);
+                z = zeros(length(obj.landmarkIDs)*obj.obsDim + 2,1);
+                vis = zeros(length(obj.landmarkIDs)*obj.obsDim + 2,1);
                 for j = 1:length(obj.landmarkIDs)
                    [z_j, vis_j] = obj.stereo_proj(obj.landmarkPoses(:,j), x);
                    if vis_j == 1
@@ -61,6 +62,10 @@ classdef pantilt_stereoCamModel < ObservationModelBase
                    end
                     
                 end
+                encoder_meas = x(4:5) + noise.*normrnd(0,obj.encoder_std,2,1);
+                z(end-1:end) = encoder_meas;
+                vis(end-1:end) = [1;1];
+                
                 
         end
         
@@ -119,7 +124,7 @@ classdef pantilt_stereoCamModel < ObservationModelBase
         end
         
         function H = getObservationJacobian(obj, x,v)
-            H = zeros(length(obj.landmarkIDs)*obj.obsDim,length(x));
+            H = zeros(length(obj.landmarkIDs)*obj.obsDim + 2,length(x));
             
             th = x(3); %robot heading
             phi = x(4); % pan angle
@@ -144,7 +149,8 @@ classdef pantilt_stereoCamModel < ObservationModelBase
                H_proj = obj.stereoJac(p_jc_c);
                
                H(obj.obsDim*(j-1)+1:obj.obsDim*j,:) = H_proj * obj.C_cv*H_tf;
-            end 
+            end
+            H(end-1:end, 4:5) = eye(2);
         end
         
         function [ H_j ] = stereoJac(obj, p_jc_c)
@@ -199,14 +205,15 @@ classdef pantilt_stereoCamModel < ObservationModelBase
         end
         
         function M = getObservationNoiseJacobian(obj,x,v,z)
-            n = length(z)/obj.obsDim;
-            M = eye(n*obj.obsNoiseDim);
+            M = eye(length(obj.landmarkIDs)*obj.obsDim + 2);
         end
         
         function R = getObservationNoiseCovariance(obj,x,z)
             
            variances_all_j = repmat(obj.var,length(obj.landmarkIDs),1);
-           R = diag(variances_all_j);
+           R = zeros(length(obj.landmarkIDs)*obj.obsDim + 2, length(obj.landmarkIDs)*obj.obsDim + 2);
+           R(1:end-2,1:end-2) = diag(variances_all_j);
+          %Scale by visibility
            for j = 1:length(obj.landmarkIDs)
                 p_ji_i = obj.landmarkPoses(:,j);
                 p_jc_c = tf2camera_frame(obj,p_ji_i, x);
@@ -214,14 +221,15 @@ classdef pantilt_stereoCamModel < ObservationModelBase
                 R(j*obj.obsDim-1:j*obj.obsDim,j*obj.obsDim-1:j*obj.obsDim) =...
                         (1/(p_vis_j+obj.eps)).*R(j*obj.obsDim-1:j*obj.obsDim,j*obj.obsDim-1:j*obj.obsDim);
            end
-           %Scale by visibility
-           
+           R(end-1:end,end-1:end) = [ obj.encoder_std^2, 0;
+                                        0, obj.encoder_std^2];
             
         end
         
         function R_inv = getObservationNoiseCovarianceInverse(obj,x,z)
            variances_all_j = repmat(1/obj.var,length(obj.landmarkIDs),1);
-           R_inv = diag(variances_all_j);
+           R_inv = zeros(length(obj.landmarkIDs)*obj.obsDim + 2, length(obj.landmarkIDs)*obj.obsDim + 2);
+           R_inv(1:end-2,1:end-2) = diag(variances_all_j);
            for j = 1:length(obj.landmarkIDs)
                 p_ji_i = obj.landmarkPoses(:,j);
                 p_jc_c = tf2camera_frame(obj,p_ji_i, x);
@@ -229,6 +237,8 @@ classdef pantilt_stereoCamModel < ObservationModelBase
                 R_inv(j*obj.obsDim-1:j*obj.obsDim,j*obj.obsDim-1:j*obj.obsDim) =...
                         p_vis_j.*R_inv(j*obj.obsDim-1:j*obj.obsDim,j*obj.obsDim-1:j*obj.obsDim);
            end
+           R_inv(end-1:end,end-1:end) = [ 1/(obj.encoder_std^2), 0;
+                                        0, 1/(obj.encoder_std^2)];
         end
         
         function innov = computeInnovation(obj,Xprd,Zg)

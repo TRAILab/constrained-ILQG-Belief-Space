@@ -17,6 +17,8 @@ classdef MotionModelBase < handle
     
     properties
         dt = 0.0; % delta_t for time discretization
+        D = [];
+        D_pseudoinv = [];
     end
     
     methods (Abstract)
