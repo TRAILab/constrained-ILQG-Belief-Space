@@ -146,7 +146,7 @@ if size(x0,2) == 1
     diverge = true;
     for alpha = Op.Alpha
         [x,un,cost]  = forward_pass(x0(:,1),alpha*u,[],[],[],1,DYNCST,Op.lims,[]);
-        drawResult(Op.plotFn,x(:,:,1),3,Op.D);
+        drawResult(Op.plotFn,x(:,:,1),n,Op.D);
         saveas(gcf,'iLQG-initialguess.jpg');
         pause(3);
         % simplistic divergence test
@@ -173,7 +173,7 @@ init_cost = sum(cost(:));
 trace(1).init_cost = init_cost;
 
 % user plotting
-drawResult(Op.plotFn,x,3,Op.D);
+drawResult(Op.plotFn,x,n,Op.D);
 % Op.plotFn(x);
 
 if diverge
@@ -320,7 +320,7 @@ for iter = 1:Op.maxIter
         x              = xnew;
         cost           = costnew;
         flgChange      = 1;
-        drawResult(Op.plotFn,x,3,Op.D);
+        drawResult(Op.plotFn,x,n,Op.D);
 %         Op.plotFn(x);
         
         % terminate ?
@@ -400,7 +400,7 @@ if ~isempty(iter)
             '  fwd pass:   %-4.1f%%\n'...
             '  other:      %-4.1f%% (graphics etc.)\n'...
             '=========== end iLQG ===========\n'],...
-            iter,sum(cost(:)),g_norm,lambda,1e3*total_t/iter,total_t,...
+            iter,sum(cost(:)),g_norm,lambda,1e3*total_t/iter,diff_t+back_t+fwd_t,...
             [diff_t, back_t, fwd_t, (total_t-diff_t-back_t-fwd_t)]*100/total_t);
     end
     totaTime = total_t;
@@ -584,7 +584,7 @@ if figures ~= 0  && ( mod(mT,figures) == 0 || init == 2 )
     fig1 = findobj(0,'name','iLQG');
     if  isempty(fig1)
         fig1 = figure();
-        set(fig1,'NumberTitle','off','Name','iLQG','KeyPressFcn',@Kpress,'user',0,'toolbar','none', 'WindowStyle', 'docked');
+        set(fig1,'NumberTitle','off','Name','iLQG','KeyPressFcn',@Kpress,'user',0,'toolbar','none');
         fprintf('Type ESC in the graphics window to terminate early.\n')
     end
     
@@ -649,7 +649,7 @@ if figures < 0  &&  (mod(abs(trace(mT).iter)-1,figures) == 0 || init == 2) && ~i
     fig2 = findobj(0,'name','iLQG - derivatives');
     if  isempty(fig2)
         fig2 = figure();
-        set(fig2,'NumberTitle','off','Name','iLQG - derivatives','KeyPressFcn',@Kpress,'user',0, 'WindowStyle', 'docked');
+        set(fig2,'NumberTitle','off','Name','iLQG - derivatives','KeyPressFcn',@Kpress,'user',0);
     end
     
     if length(T) == 1

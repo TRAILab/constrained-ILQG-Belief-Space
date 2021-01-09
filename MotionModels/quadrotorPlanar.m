@@ -13,21 +13,7 @@ classdef quadrotorPlanar < MotionModelBase
         eta_u = 0; % A coefficient, which makes the control noise intensity proportional to the control signal       
         zeroNoise = [0;0;0];
         ctrlLim = [-5.0 5.0;-5 5; -90*pi/180 90*pi/180]; % control limits
-        D = [1,0,0,0,0,0;
-             0,1,0,0,0,0;
-             0,0,1,0,0,0;
-             0,1,0,0,0,0;
-             0,0,0,1,0,0;
-             0,0,0,0,1,0;
-             0,0,1,0,0,0;
-             0,0,0,0,1,0;
-             0,0,0,0,0,1;]; % Duplication matrix for creating full vectorized covariance matrix from diagnoal and below elements
-         D_psuedoinv = [1,0,0,0,0,0,0,0,0;
-                        0,0.5,0,0.5,0,0,0,0,0;
-                        0,0,0.5,0,0,0,0.5,0,0;
-                        0,0,0,0,1,0,0,0,0;
-                        0,0,0,0,0,0.5,0,0.5,0;
-                        0,0,0,0,0,0,0,0,1;];
+       
             
     end
     
@@ -36,6 +22,25 @@ classdef quadrotorPlanar < MotionModelBase
         function obj = quadrotorPlanar(dt)
             obj@MotionModelBase();      
             obj.dt = dt;
+            n=3;
+            % Duplication matrix: vec(P)=Dvech(P)
+            m=1/2*n*(n+1);
+            nsq=n^2;
+            DT=sparse(m,nsq);
+            for j=1:n
+                for i=j:n
+                    ijth=(j-1)*n+i;
+                    jith=(i-1)*n+j;
+                    vecTij=sparse(ijth,1,1,nsq,1);
+                    vecTij(jith,1)=1;
+                    k=(j-1)*n+i-1/2*j*(j-1);
+                    uij=sparse(k,1,1,m,1);
+                    DT=DT+uij*vecTij';
+                end
+            end
+            D=DT';
+            obj.D = full(D);
+            obj.D_pseudoinv = (D'*D)\(D');
         end
         
         

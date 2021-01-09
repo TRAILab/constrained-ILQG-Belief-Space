@@ -1,4 +1,4 @@
-function drawResult(plotFn, b, stDim,D)
+function drawResult(plotFn, b, bfDim,D)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Draw the trajectory and uncertainty ellipses
 %
@@ -8,6 +8,11 @@ function drawResult(plotFn, b, stDim,D)
 %   stDim: robot state space dimension
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 L = size(b,2);
+if bfDim == 20
+    stDim = 5;
+elseif bfDim == 9
+    stDim = 3;
+end
 
 itp = round(linspace(1,L,ceil(L/2))); % indexes to plot
 

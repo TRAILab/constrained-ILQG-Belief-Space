@@ -11,7 +11,7 @@ close all;
 %% Initialize planning scenario
 DYNAMIC_OBS = 0;
 
-dt = 0.2; % time step
+dt = 0.1; % time step
 % control_method = 'iLQG';
 control_method = 'iLQG_AL';
 
@@ -28,18 +28,21 @@ ROBOT_RADIUS = 0.16; % robot radius is needed by collision checker
 svc = @(x)isStateValid(x,map,0); % state validity checker (collision)
 
 %% Setup start and goal/target state
-map.start = [5;5;deg2rad(90);0;0];
+map.start = [3;1;deg2rad(90);0;deg2rad(-40)];
 map.goal = [8;8.5;deg2rad(-35);0;0];
+
+% map.start = [4;0.5;deg2rad(0);0;deg2rad(-40)];
+% map.goal = [14;4.0;deg2rad(90);0;0];
+
 x0 = map.start; % intial state
 P = 0.01*eye(5); % intial covariance
-% sqrtSigma0 = sqrtm(Sigma0);
 b0 = [x0;mm.D_pseudoinv*P(:)]; % initial belief state
 
 xf = map.goal; % target state
 
 %% Setup planner to get nominal controls
 
-[x_traj0,u0, initGuessFigure] = initial_rollout_carPanTilt(map,mm,[],85);
+[x_traj0,u0] = initial_rollout_carPanTilt(map,mm,[],85);
 nDT = size(u0,2); % Time steps
 
 %% set up the optimization problem
@@ -51,8 +54,8 @@ full_DDP = false;
 conFunc = @(b,u,k) constraintFunc(b,u,k);
 if strcmp(control_method, 'iLQG_AL')
     % these function is needed by iLQG_AL
-    xy_cstr_bound = 0.36;
-    ang_cstr_bound = 0.25; % temporary fix here since anonymous function call cannot return multiple values, write the x direction constraint
+    xy_cstr_bound = 0.15;
+    ang_cstr_bound = 0.15; % temporary fix here since anonymous function call cannot return multiple values, write the x direction constraint
     DYNCST  = @(b,u,lagMultiplier, mu,k) beliefDynCostConstr(b,u,lagMultiplier, mu,k,xf,nDT,full_DDP,mm,om,svc,conFunc,map); % For iLQG_AL
 elseif strcmp(control_method, 'iLQG')
     info_cost = 1000; % temporary fix here since anonymous function call cannot return multiple values, write the parameter of Q_t
@@ -108,7 +111,7 @@ if isfile(training_file_path)
     nIter = results.nIter;
     optimCost = results.optimCost;
     trace = results.trace;
-    drawResult(plotFn, b, mm.stDim,mm.D)
+    drawResult(plotFn, b,length(b(:,1)),mm.D)
 else
     if strcmp(control_method, 'iLQG')
         [b,u_opt,L_opt,~,~,optimCost,trace,~,tt, nIter]= iLQG(DYNCST, b0, u0, Op);
@@ -117,12 +120,10 @@ else
     end
 end
 
-rh = [];
-lh = [];
 for k = 1:length(b(1,:))
-    x_mean = b(1:3,k);
-    if mod(k-1,2) == 0
-        drawFoV(figh,om,x_mean,rh,lh);
+    x_mean = b(1:5,k);
+    if mod(k-1,4) == 0
+        drawFoV(figh,om,x_mean,[]);
     end
     pause(0.1)
 end
@@ -132,7 +133,7 @@ end
 %% Save result figure
 try
     savefig(figh,strcat(outDatPath,'iLQG-solution'));
-    savefig(initGuessFigure,strcat(outDatPath,'RRT-initGuess'));
+%     savefig(initGuessFigure,strcat(outDatPath,'RRT-initGuess'));
 catch ME
     warning('Could not save figs')
 end
@@ -151,22 +152,22 @@ results.trace = trace;
 
 %% plot the final trajectory and covariances
 
-svcDyn = @(x)isStateValidAnimate(x,map,DYNAMIC_OBS); % state validity checker (collision)
-
-[didCollide, b_actual_traj, x_traj_true,trCov_vs_time{1},u_actual_traj] = animate(figh, plotFn, b0, b, u_opt, L_opt, mm, om, svcDyn, map, DYNAMIC_OBS);
-
-plot_traj(b, b_actual_traj, x_traj_true, dt, conFunc, outDatPath) % Plot belief errors
-
-results.collision{1} = didCollide;
-
-
-try
-    savefig(figh,strcat(outDatPath,'iLQG-1'));
-catch ME
-    warning('Could not save figs')
-end
-
-
+% svcDyn = @(x)isStateValidAnimate(x,map,DYNAMIC_OBS); % state validity checker (collision)
+% 
+% [didCollide, b_actual_traj, x_traj_true,trCov_vs_time{1},u_actual_traj] = animate(figh, plotFn, b0, b, u_opt, L_opt, mm, om, svcDyn, map, DYNAMIC_OBS);
+% 
+% plot_traj(b, b_actual_traj, x_traj_true, dt, conFunc, outDatPath) % Plot belief errors
+% 
+% results.collision{1} = didCollide;
+% 
+% 
+% try
+%     savefig(figh,strcat(outDatPath,'iLQG-1'));
+% catch ME
+%     warning('Could not save figs')
+% end
+% 
+% 
 if ~isfile(training_file_path)
     try
         save(training_file_path, 'results');

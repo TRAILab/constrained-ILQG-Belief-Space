@@ -12,8 +12,8 @@ close all;
 DYNAMIC_OBS = 0;
 
 dt = 0.1; % time step
-% control_method = 'iLQG';
-control_method = 'iLQG_AL';
+control_method = 'iLQG';
+% control_method = 'iLQG_AL';
 
 load(mapPath); % load map
 [~,map_name,~] = fileparts(mapPath);
@@ -32,7 +32,7 @@ svc = @(x)isStateValid(x,map,0); % state validity checker (collision)
 x0 = map.start; % intial state
 P = 0.02*eye(3); % intial covariance
 % sqrtSigma0 = sqrtm(Sigma0);
-b0 = [x0;mm.D_psuedoinv*P(:)]; % initial belief state
+b0 = [x0;mm.D_pseudoinv*P(:)]; % initial belief state
 
 xf = map.goal; % target state
 

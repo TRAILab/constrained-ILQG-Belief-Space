@@ -9,7 +9,7 @@ classdef car_panTilt < MotionModelBase
         stDim = 5; % state dimension
         ctDim = 4;  % control vector dimension
         wDim = 4;   % Process noise (W) dimension
-        P_Wg = diag(([0.2,0.07,0.05,0.05]./3).^2); % covariance of state-additive-noise
+        P_Wg = diag(([0.4,0.07,0.05,0.05]./3).^2); % covariance of state-additive-noise
         sigma_b_u = 0; % A constant bias intensity (covariance) of the control noise
         eta_u = 0; % A coefficient, which makes the control noise intensity proportional to the control signal       
         zeroNoise = [0;0;0;0];

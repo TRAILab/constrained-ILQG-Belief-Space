@@ -156,7 +156,7 @@ if size(x0,2) == 1
     diverge = true;
     for alpha = Op.Alpha
         [x,un,cost, constr_val, max_constr]  = forward_pass(x0(:,1),alpha*u,lagMult, mu, [],[],[],1,DYNCST,Op.lims,[],J);
-        drawResult(Op.plotFn,x(:,:,1),3,Op.D);
+        drawResult(Op.plotFn,x(:,:,1),n,Op.D);
         saveas(gcf,'iLQG-initialguess.jpg');
         pause(3);
         % simplistic divergence test
@@ -182,7 +182,7 @@ trace(1).cost = sum(cost(:));
 init_cost = sum(cost(:));
 
 % user plotting
-drawResult(Op.plotFn,x,3,Op.D);
+drawResult(Op.plotFn,x,n,Op.D);
 % Op.plotFn(x);
 
 if diverge
@@ -335,7 +335,7 @@ for iterOut = 1:Op.maxIterOuter
             constr_val     = constr_val_new;
             max_constr     = max_constr_new;
             flgChange      = 1;
-            drawResult(Op.plotFn,x,3,Op.D);
+            drawResult(Op.plotFn,x,n,Op.D);
     %         Op.plotFn(x);
 
             % terminate ?
@@ -381,6 +381,7 @@ for iterOut = 1:Op.maxIterOuter
        if max_constr < tolConstr
            fprintf('\nConstraints Satisfied\n');
            break
+           
        else
            [lagMult, mu, phi] = updateMultPen(constr_val, lagMult, mu, phi);
            [x,u,cost, constr_val, max_constr]   = forward_pass(x0 ,u, lagMult, mu, L, x(:,1:N),[],1,DYNCST,Op.lims,Op.diffFn,J);
@@ -651,7 +652,7 @@ if figures ~= 0  && ( mod(mT,figures) == 0 || init == 2 )
     fig1 = findobj(0,'name','iLQG_AL');
     if  isempty(fig1)
         fig1 = figure();
-        set(fig1,'NumberTitle','off','Name','iLQG_AL','KeyPressFcn',@Kpress,'user',0,'toolbar','none', 'WindowStyle', 'docked');
+        set(fig1,'NumberTitle','off','Name','iLQG_AL','KeyPressFcn',@Kpress,'user',0,'toolbar','none');
         fprintf('Type ESC in the graphics window to terminate early.\n')
     end
     

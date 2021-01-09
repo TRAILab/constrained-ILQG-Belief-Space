@@ -216,10 +216,11 @@ classdef pantilt_stereoCamModel < ObservationModelBase
           %Scale by visibility
            for j = 1:length(obj.landmarkIDs)
                 p_ji_i = obj.landmarkPoses(:,j);
-                p_jc_c = tf2camera_frame(obj,p_ji_i, x);
+                p_jc_c = tf2camera_frame(obj,p_ji_i(1:3), x);
                 p_vis_j = obj.visibility_probability(p_jc_c,p_ji_i,x);
-                R(j*obj.obsDim-1:j*obj.obsDim,j*obj.obsDim-1:j*obj.obsDim) =...
-                        (1/(p_vis_j+obj.eps)).*R(j*obj.obsDim-1:j*obj.obsDim,j*obj.obsDim-1:j*obj.obsDim);
+                R(obj.obsDim*(j-1)+1: obj.obsDim*j,obj.obsDim*(j-1)+1: obj.obsDim*j) =...
+                        (1/(p_vis_j+obj.eps)).*R(obj.obsDim*(j-1)+1: obj.obsDim*j,obj.obsDim*(j-1)+1: obj.obsDim*j);
+                
            end
            R(end-1:end,end-1:end) = [ obj.encoder_std^2, 0;
                                         0, obj.encoder_std^2];
@@ -227,15 +228,15 @@ classdef pantilt_stereoCamModel < ObservationModelBase
         end
         
         function R_inv = getObservationNoiseCovarianceInverse(obj,x,z)
-           variances_all_j = repmat(1/obj.var,length(obj.landmarkIDs),1);
+           variances_all_j = repmat(1./obj.var,length(obj.landmarkIDs),1);
            R_inv = zeros(length(obj.landmarkIDs)*obj.obsDim + 2, length(obj.landmarkIDs)*obj.obsDim + 2);
            R_inv(1:end-2,1:end-2) = diag(variances_all_j);
            for j = 1:length(obj.landmarkIDs)
                 p_ji_i = obj.landmarkPoses(:,j);
-                p_jc_c = tf2camera_frame(obj,p_ji_i, x);
+                p_jc_c = tf2camera_frame(obj,p_ji_i(1:3), x);
                 p_vis_j = obj.visibility_probability(p_jc_c,p_ji_i,x);
-                R_inv(j*obj.obsDim-1:j*obj.obsDim,j*obj.obsDim-1:j*obj.obsDim) =...
-                        p_vis_j.*R_inv(j*obj.obsDim-1:j*obj.obsDim,j*obj.obsDim-1:j*obj.obsDim);
+                R_inv(obj.obsDim*(j-1)+1: obj.obsDim*j,obj.obsDim*(j-1)+1: obj.obsDim*j) =...
+                        p_vis_j.*R_inv(obj.obsDim*(j-1)+1: obj.obsDim*j,obj.obsDim*(j-1)+1: obj.obsDim*j);
            end
            R_inv(end-1:end,end-1:end) = [ 1/(obj.encoder_std^2), 0;
                                         0, 1/(obj.encoder_std^2)];

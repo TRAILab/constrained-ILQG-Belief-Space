@@ -29,6 +29,7 @@ for i = 1:size(b,2)
 %     L = chol(P(1:2,1:2));
     max_std =sqrt(max(eig(P(1:2,1:2))));
     
+    
 %     x_tf = L\x(1:2);
     
     min_ct = 100;
@@ -37,10 +38,11 @@ for i = 1:size(b,2)
 %         obs_j = L\(map.obstacles(:,j)-0.5.*[map.obstacle_sizes(j);map.obstacle_sizes(j)]);
         obs_j = (map.obstacles(:,j)-0.5.*[map.obstacle_sizes(j);map.obstacle_sizes(j)]);
         ct = (norm(obs_j - x(1:2)) - (R_orig + (sqrt(2)/2)*map.obstacle_sizes(j)))/max_std;
-        if ct<0
-            min_ct = 0.001;
-            break
-        end
+        
+%         if ct<0
+%             min_ct = 0.001;
+%             break
+%         end
         if ct < min_ct
            min_ct = ct; 
         end

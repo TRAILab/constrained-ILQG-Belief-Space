@@ -64,11 +64,22 @@ function cost = evaluateCost(b, u, lagMultiplier, mu, goal,  stDim, L, stateVali
     vecP = D*b(stDim+1:end);
     P = reshape(vecP,stDim,stDim); % Covariance Matrix
 
-    Q_t = 300*eye(stDim); % penalize uncertainty
-    R_t = 4*eye(ctrlDim); % penalize control effort
-%     R_t(3,3) = 1;
     Q_l = 100*L*eye(stDim); % penalize terminal error
-    Q_l(3,3) = 0;
+
+    if ctrlDim == 2 % quadPlane robot
+        R_t = 4*eye(ctrlDim);
+        Q_l(3,3) = 0;
+    end
+    if ctrlDim == 3
+        R_t = 3*eye(ctrlDim);
+        R_t(3,3) = 1;
+        Q_l(3,3) = 0;
+    end
+    if ctrlDim == 4 % carPanTilt
+        R_t = 4*eye(ctrlDim); % penalize control effort
+        R_t(3:4,3:4) = eye(2);
+        Q_l(3:5,3:5) = zeros(3,3);
+    end
     w_cc = 1.0; % penalize collision
 
     % deviation from goal
@@ -125,14 +136,16 @@ function cost = evaluateCost(b, u, lagMultiplier, mu, goal,  stDim, L, stateVali
         nSigma = sigmaToCollide2(b,stDim,D,map);
     %     cc = sum(exp(-nSigma));
 %         nSigma = sigmaToCollide(b,stDim,D,stateValidityChecker);
-        cc = -log(chi2cdf(nSigma^2, stDim-1));   
+        cc = exp(-nSigma);   
+%     cc = -log(chi2cdf(nSigma^2, stDim-1));
 
       end
     else
       nSigma = sigmaToCollide2(b,stDim,D,map);
     %   cc = sum(exp(-nSigma));
 %         nSigma = sigmaToCollide(b,stDim,D,stateValidityChecker);
-        cc = -log(chi2cdf(nSigma^2, stDim-1));
+        cc = exp(-nSigma);
+%     cc = -log(chi2cdf(nSigma^2, stDim-1));
     end
 
 

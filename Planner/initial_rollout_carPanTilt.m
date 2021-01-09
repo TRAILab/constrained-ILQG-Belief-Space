@@ -1,4 +1,4 @@
-function [x_traj,u_traj,figh] = initial_rollout_carPanTilt(map, motion_model, waypoints, timesteps)
+function [x_traj,u_traj] = initial_rollout_carPanTilt(map, motion_model, waypoints, timesteps)
 %INITIAL_ROLLOUT Computes a nominal control and state trajectory based on
 %   hand crafted waypoints
 %   Detailed explanation goes here
@@ -27,8 +27,8 @@ function [x_traj,u_traj,figh] = initial_rollout_carPanTilt(map, motion_model, wa
     % Draw
     
     
-    figh = figure();
-    drawObstacles(figh,map)
-    drawLandmarks(figh,map)
-    plot(x_traj(1,:),x_traj(2,:),'r-o')
+%     figh = figure();
+%     drawObstacles(figh,map)
+%     drawLandmarks(figh,map)
+%     plot(x_traj(1,:),x_traj(2,:),'r-o')
 end

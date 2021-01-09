@@ -76,7 +76,8 @@ else
     
     % construct Jacobian adding collision cost
     for i = 1:size(dsigma_db,2)               
-        J(:,i) = J(:,i) + 350.*((-1/2)/(exp(nSigma(i)/2)-1)) * dsigma_db(:,i);
+%         J(:,i) = J(:,i) + 350.*((-1/2)/(exp(nSigma(i)/2)-1)) * dsigma_db(:,i);
+          J(:,i) = J(:,i) - 350.*exp(-nSigma(i)) * dsigma_db(:,i);
     end
     
     cb      = J(ib,:);
@@ -94,7 +95,8 @@ else
     % construct Hessian adding collision cost
     for i = 1:size(dsigma_db,2)
         jjt = dsigma_db(:,i)*dsigma_db(:,i)';        
-        JJ(:,:,i) = JJ(:,:,i) + 350.*((1/4)*exp(nSigma(i)/2)/(exp(nSigma(i)/2)-1)^2) * 0.5*(jjt+jjt');
+%         JJ(:,:,i) = JJ(:,:,i) + 350.*((1/4)*exp(nSigma(i)/2)/(exp(nSigma(i)/2)-1)^2) * 0.5*(jjt+jjt');
+        JJ(:,:,i) = JJ(:,:,i) + 350.*(exp(-nSigma(i))) * 0.5*(jjt+jjt');
     end
     
     cbb     = JJ(ib,ib,:);
