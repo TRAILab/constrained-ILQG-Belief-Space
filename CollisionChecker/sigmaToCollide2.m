@@ -27,7 +27,8 @@ for i = 1:size(b,2)
 %        i 
 %     end
 %     L = chol(P(1:2,1:2));
-    max_std =sqrt(max(eig(P(1:2,1:2))));
+    max_std =sqrt(max(diag(P)));
+%     max_std =sqrt(max(eig(P(1:2,1:2))));
     
     
 %     x_tf = L\x(1:2);

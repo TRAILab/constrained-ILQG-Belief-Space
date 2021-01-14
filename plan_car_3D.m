@@ -31,8 +31,8 @@ svc = @(x)isStateValid(x,map,0); % state validity checker (collision)
 map.start = [3;1;deg2rad(90);0;deg2rad(-40)];
 map.goal = [8;8.5;deg2rad(-35);0;0];
 
-% map.start = [4;0.5;deg2rad(0);0;deg2rad(-40)];
-% map.goal = [14;4.0;deg2rad(90);0;0];
+% map.start = [5;0.5;deg2rad(0);0;deg2rad(-30)];
+% map.goal = [14;4.0;deg2rad(180);0;0];
 
 x0 = map.start; % intial state
 P = 0.01*eye(5); % intial covariance
@@ -59,8 +59,8 @@ if strcmp(control_method, 'iLQG_AL')
     DYNCST  = @(b,u,lagMultiplier, mu,k) beliefDynCostConstr(b,u,lagMultiplier, mu,k,xf,nDT,full_DDP,mm,om,svc,conFunc,map); % For iLQG_AL
 elseif strcmp(control_method, 'iLQG')
     info_cost = 1000; % temporary fix here since anonymous function call cannot return multiple values, write the parameter of Q_t
-    DYNCST  = @(b,u,i) beliefDynCost(b,u,xf,nDT,full_DDP,mm,om,svc,map); % For iLQG
-%     DYNCST  = @(b,u,i) beliefDynCost_nonsmooth(b,u,xf,nDT,full_DDP,mm,om,svc,map); % For iLQG without visibility smoothing
+%     DYNCST  = @(b,u,i) beliefDynCost(b,u,xf,nDT,full_DDP,mm,om,svc,map); % For iLQG
+    DYNCST  = @(b,u,i) beliefDynCost_nonsmooth(b,u,xf,nDT,full_DDP,mm,om,svc,map); % For iLQG without visibility smoothing
 end   
 
 % control constraints are optional
@@ -164,7 +164,7 @@ results.trace = trace;
 % try
 %     savefig(figh,strcat(outDatPath,'iLQG-1'));
 % catch ME
-%     warning('Could not save figs')
+%     warning('Could not save figs') 
 % end
 % 
 % 

@@ -25,7 +25,7 @@ NUM_SIMS = 1;
 % which map to use
 % fname = 'mapTask3';
 % fname = 'with_normals4';
-fname = '3D_1';
+fname = '3D_3';
 
 % create full path to map name
 mapFilePath = strcat('./Maps/',fname,'.mat');
@@ -53,7 +53,7 @@ end
 
 % path to where data is written
 outDatPath = strcat(baseDirectory, envSettingFolderName, '/');
-trainPath = strcat('./Results_testCar/', envSettingFolderName, '/');
+trainPath = strcat('./Results_RALtest/', envSettingFolderName, '/');
 
 % Create new directory
 if CREATE_OUTPUT_DIRECTORY
@@ -80,7 +80,8 @@ for i = 1:NUM_SIMS
     if strcmp(robotType, 'uni')
         plan_unicycle_robot(mapFilePath, trainPath, outDatPathFull);
     elseif strcmp(robotType, 'quad')
-        plan_quadPlane(mapFilePath, trainPath, outDatPathFull);
+%         plan_quadPlane(mapFilePath, trainPath, outDatPathFull);
+        plan_quad_3D(mapFilePath, trainPath, outDatPathFull);
     elseif strcmp(robotType, 'car')
         plan_car_3D(mapFilePath, trainPath, outDatPathFull)
     end

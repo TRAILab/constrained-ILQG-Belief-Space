@@ -24,23 +24,29 @@ function [handles] = drawFoV(fig, meas_model,x,handles)
                     line([x(1);x(1) + r*cos(theta+(FoV/2))],[x(2);x(2) + r*sin(theta+(FoV/2))],'Color','red','LineStyle','--');
                     ];
     else
-        phi = x(4);
-        psi = x(5);
+        
+        if length(x) == 3
+            phi = 0;
+            psi = meas_model.psi;
+        else
+            phi = x(4);
+            psi = x(5);
+        end
         
         pan = theta + phi;
         
-        lpu = [x(1) + r*cos(pan+(FoV/2));
-               x(2) + r*sin(pan+(FoV/2));
+        lpu = [x(1) + r*cos(pan+(FoV/2))*cos(psi - (FoV/2));
+               x(2) + r*sin(pan+(FoV/2))*cos(psi - (FoV/2));
                -r*sin(psi - (FoV/2))];
-        rpu = [x(1) + r*cos(pan-(FoV/2));
-               x(2) + r*sin(pan-(FoV/2));
+        rpu = [x(1) + r*cos(pan-(FoV/2))*cos(psi - (FoV/2));
+               x(2) + r*sin(pan-(FoV/2))*cos(psi - (FoV/2));
                -r*sin(psi - (FoV/2))];
-        lpl = [x(1) + r*cos(pan+(FoV/2));
-               x(2) + r*sin(pan+(FoV/2));
+        lpl = [x(1) + r*cos(pan+(FoV/2))*cos(psi + (FoV/2));
+               x(2) + r*sin(pan+(FoV/2))*cos(psi + (FoV/2));
                -r*sin(psi + (FoV/2))];
         
-        rpl = [x(1) + r*cos(pan-(FoV/2));
-               x(2) + r*sin(pan-(FoV/2));
+        rpl = [x(1) + r*cos(pan-(FoV/2))*cos(psi + (FoV/2));
+               x(2) + r*sin(pan-(FoV/2))*cos(psi + (FoV/2));
                -r*sin(psi + (FoV/2))];
         
 %         rh = line([x(1);x(1) + r*cos(pan-(FoV/2))],[x(2);x(2) + r*sin(pan-(FoV/2))],...

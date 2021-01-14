@@ -72,9 +72,17 @@ obsNoise = zeros(size(z));
 H = obsModel.getObservationJacobian(x,obsNoise);
 H = H(vis==1,:); % only visible features
 z = z(vis==1); % Only visible features
-M = obsModel.getObservationNoiseJacobian(x,[],z);
-variances_all_j = repmat([obsModel.var(1);obsModel.var(3)],length(z)/obsModel.obsDim,1);
+% variances_all_j = repmat([obsModel.var],length(z)/obsModel.obsDim,1);
+% R = diag(variances_all_j);
+
+variances_all_j = repmat(obsModel.var,length(obsModel.landmarkIDs),1);
 R = diag(variances_all_j);
+
+% R = zeros(length(obsModel.landmarkIDs)*obsModel.obsDim + 2, length(obsModel.landmarkIDs)*obsModel.obsDim + 2);
+% R(1:end-2,1:end-2) = diag(variances_all_j);
+% R(end-1:end,end-1:end) = [ obsModel.encoder_std^2, 0;
+%                                         0, obsModel.encoder_std^2];
+R = R(vis==1,vis==1);
 
 % % update P 
 P_prd = A*P*A' + G*Q*G';
@@ -105,7 +113,7 @@ g_b_u(1:stDim,1) = x_next;
 
 %Store diagonal and below of covariance matrix
 
-g_b_u(stDim+1:end,1) = motionModel.D_psuedoinv*P_next(:);
+g_b_u(stDim+1:end,1) = motionModel.D_pseudoinv*P_next(:);
 
 % for d = 1:stDim
 %     g_b_u(d*stDim+1:(d+1)*stDim,1) = P_next(:,d);

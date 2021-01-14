@@ -189,10 +189,10 @@ classdef pantilt_stereoCamModel < ObservationModelBase
             theta = acos(p_jc_c_norm.'*[0;0;1]);
             
             %Calculate visibility, parallax angle alpha
-            th_j = deg2rad(p_ji_i(3));
-            r_jk_i = -p_ji_i(1:2) + x(1:2);
+            th_j = deg2rad(p_ji_i(4));
+            r_jk_i = -p_ji_i(1:3) + [x(1:2);0];
             r_jk_i_norm = r_jk_i./norm(r_jk_i);
-            e_j = [cos(th_j);sin(th_j)];
+            e_j = [cos(th_j);sin(th_j);0];
             
             alpha = acos(r_jk_i_norm.'*e_j);
             

@@ -5,17 +5,20 @@ function [x_traj,u_traj,figh] = initial_rollout_quad(map,motion_model, waypoints
     if isempty(waypoints)
        goal = map.goal;
        goal(3) = deg2rad(90);
-       waypoints = [map.start, [5;8.5;deg2rad(45)], [8;8.5;deg2rad(-45)], [9;2.5;deg2rad(-45)], [14;2.5;deg2rad(45)], [14;5;deg2rad(135)], goal];
+%        waypoints = [map.start, [5;8.5;deg2rad(45)], [8;8.5;deg2rad(-45)], [9;2.5;deg2rad(-45)], [14;2.5;deg2rad(45)], [14;5;deg2rad(135)], goal];
+       waypoints = [map.start, [5;8.5;deg2rad(52)],  map.goal];
+%        waypoints = [map.start, [8;1.0;deg2rad(0)], [8;2.5;deg2rad(0)], [11;2.0;deg2rad(-45)],...
+%                                     [14;3.0;deg2rad(-90)] map.goal];
     end
-    x_traj = [];
+    x_k_minus = waypoints(:,1);
+    x_traj = x_k_minus;
     u_traj = [];
     for k = 2:length(waypoints(1,:))
-        x_k_minus = waypoints(:,k-1);
-        x_k = waypoints(:,k);
-        
+        x_k = waypoints(:,k);        
         nom_traj = motion_model.generate_open_loop_point2point_traj(x_k_minus,x_k,floor(timesteps/length(waypoints(1,:))));
-        x_traj = [x_traj, nom_traj.x];
+        x_traj = [x_traj, nom_traj.x(:,2:end)];
         u_traj = [u_traj, nom_traj.u];
+        x_k_minus = x_traj(:,end);
         
     end
     

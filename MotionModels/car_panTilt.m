@@ -108,7 +108,7 @@ classdef car_panTilt < MotionModelBase
             d_t = obj.dt;
             G = d_t.*[c+0.001,0,0,0;
                       s+0.001,0,0,0;
-                      0,1,0,0;
+                      0,1.000001,0,0;
                       0,0,1,0;
                       0,0,0,1];
 %             G = [c, 0;
