@@ -22,9 +22,10 @@ classdef pantilt_stereoCamModel < ObservationModelBase
         C_cv = [0,-1,0;
                 0,0,-1;
                 1,0,0];
-        FoV = deg2rad(60);
-        max_alpha = deg2rad(165); %max parallax angle for feature matching
+        FoV = deg2rad(75);
+        max_alpha = deg2rad(185); %max parallax angle for feature matching
         eps = 1e-7;
+        height = 0.3; %height of camera above ground
     end
     
     methods
@@ -108,7 +109,7 @@ classdef pantilt_stereoCamModel < ObservationModelBase
             theta = acos(p_jc_c_norm.'*[0;0;1]);
             
             %Calculate visibility, parallax angle alpha
-            r_jk_i = -p_ji_i(1:3) + [x_rob(1:2);0];
+            r_jk_i = -p_ji_i(1:3) + [x_rob(1:2);obj.height];
             r_jk_i_norm = r_jk_i./norm(r_jk_i);
             e_j = [cos(th_j);sin(th_j);0];
             
@@ -129,7 +130,7 @@ classdef pantilt_stereoCamModel < ObservationModelBase
             th = x(3); %robot heading
             phi = x(4); % pan angle
             psi = x(5); % tilt angle
-            p_vi_i = [x(1:2);0]; % robot position in world frame,
+            p_vi_i = [x(1:2);obj.height]; % robot position in world frame,
             
             % Compute some necessary rotation matrices for Jacobian
             % computation
@@ -173,7 +174,7 @@ classdef pantilt_stereoCamModel < ObservationModelBase
             phi = x(4);
             psi = x(5);
             
-            p_jc_i = p_ji_i - [x(1:2);0];
+            p_jc_i = p_ji_i - [x(1:2);obj.height];
             C_th_i = pantilt_stereoCamModel.rot_C3(theta);
             C_phi_th = pantilt_stereoCamModel.rot_C3(phi);
             C_psi_phi = pantilt_stereoCamModel.rot_C2(psi);
@@ -190,7 +191,7 @@ classdef pantilt_stereoCamModel < ObservationModelBase
             
             %Calculate visibility, parallax angle alpha
             th_j = deg2rad(p_ji_i(4));
-            r_jk_i = -p_ji_i(1:3) + [x(1:2);0];
+            r_jk_i = -p_ji_i(1:3) + [x(1:2);obj.height];
             r_jk_i_norm = r_jk_i./norm(r_jk_i);
             e_j = [cos(th_j);sin(th_j);0];
             
@@ -222,6 +223,16 @@ classdef pantilt_stereoCamModel < ObservationModelBase
                         (1/(p_vis_j+obj.eps)).*R(obj.obsDim*(j-1)+1: obj.obsDim*j,obj.obsDim*(j-1)+1: obj.obsDim*j);
                 
            end
+           R(end-1:end,end-1:end) = [ obj.encoder_std^2, 0;
+                                        0, obj.encoder_std^2];
+            
+        end
+        
+        function R = getObservationNoiseCovarianceReal(obj,x,z)
+            
+           variances_all_j = repmat(obj.var,length(obj.landmarkIDs),1);
+           R = zeros(length(obj.landmarkIDs)*obj.obsDim + 2, length(obj.landmarkIDs)*obj.obsDim + 2);
+           R(1:end-2,1:end-2) = diag(variances_all_j);
            R(end-1:end,end-1:end) = [ obj.encoder_std^2, 0;
                                         0, obj.encoder_std^2];
             

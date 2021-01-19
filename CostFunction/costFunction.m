@@ -52,7 +52,7 @@ x = b(1:stDim,1);
 vecP = D*b(stDim+1:end);
 P = reshape(vecP,stDim,stDim); % Covariance Matrix
 
-Q_t = 1000; % penalize uncertainty
+Q_t = 2000; % penalize uncertainty
 Q_l = 100*L*eye(stDim); % penalize terminal error
 
 if ctrlDim == 2 % quadPlane robot
@@ -99,11 +99,11 @@ if any(final)
     
   sc = delta_x'*Q_l*delta_x;
   
-  ic = Q_t*sum(diag(P));
+  ic = Q_t*sum(P(1,1) + P(2,2) + P(3,3));
   
 else
       
-  ic = Q_t*sum(diag(P));
+  ic = Q_t*sum(P(1,1) + P(2,2) + P(3,3));
   
   uc = u'*R_t*u;
   

@@ -3,7 +3,7 @@ function [x_traj,u_traj] = initial_rollout_carPanTilt(map, motion_model, waypoin
 %   hand crafted waypoints
 %   Detailed explanation goes here
     if isempty(waypoints)
-        waypoints = [map.start, [5;8.5;deg2rad(52);0;0],  map.goal];
+        waypoints = [map.start, [5;8.5;deg2rad(52);0;0], [8;8.5;deg2rad(-35);0;0]  map.goal];
 %                waypoints = [map.start, [8;1.0;deg2rad(90);0;0], [8;2.5;deg2rad(0);0;0], [11;2.0;deg2rad(0);0;0],...
 %                                     [14;2.0;deg2rad(90);0;0],[14;4.0;deg2rad(180);0;0]];
     end

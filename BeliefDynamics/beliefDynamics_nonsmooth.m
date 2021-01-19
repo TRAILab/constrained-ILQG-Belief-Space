@@ -76,12 +76,12 @@ z = z(vis==1); % Only visible features
 % R = diag(variances_all_j);
 
 variances_all_j = repmat(obsModel.var,length(obsModel.landmarkIDs),1);
-R = diag(variances_all_j);
+% R = diag(variances_all_j);
 
-% R = zeros(length(obsModel.landmarkIDs)*obsModel.obsDim + 2, length(obsModel.landmarkIDs)*obsModel.obsDim + 2);
-% R(1:end-2,1:end-2) = diag(variances_all_j);
-% R(end-1:end,end-1:end) = [ obsModel.encoder_std^2, 0;
-%                                         0, obsModel.encoder_std^2];
+R = zeros(length(obsModel.landmarkIDs)*obsModel.obsDim + 2, length(obsModel.landmarkIDs)*obsModel.obsDim + 2);
+R(1:end-2,1:end-2) = diag(variances_all_j);
+R(end-1:end,end-1:end) = [ obsModel.encoder_std^2, 0;
+                                        0, obsModel.encoder_std^2];
 R = R(vis==1,vis==1);
 
 % % update P 

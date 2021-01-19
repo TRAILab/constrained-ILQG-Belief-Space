@@ -12,8 +12,8 @@ close all;
 DYNAMIC_OBS = 0;
 
 dt = 0.1; % time step
-% control_method = 'iLQG';
-control_method = 'iLQG_AL';
+control_method = 'iLQG';
+% control_method = 'iLQG_AL';
 
 load(mapPath); % load map
 [~,map_name,~] = fileparts(mapPath);
@@ -28,11 +28,11 @@ ROBOT_RADIUS = 0.16; % robot radius is needed by collision checker
 svc = @(x)isStateValid(x,map,0); % state validity checker (collision)
 
 %% Setup start and goal/target state
-map.start = [3;1;deg2rad(90);0;deg2rad(-40)];
-map.goal = [8;8.5;deg2rad(-35);0;0];
+% map.start = [3;1;deg2rad(90);0;deg2rad(-30)];
+% map.goal = [8;7;deg2rad(-90);0;0];
 
-% map.start = [5;0.5;deg2rad(0);0;deg2rad(-30)];
-% map.goal = [14;4.0;deg2rad(180);0;0];
+map.start = [5;0.5;deg2rad(0);0;deg2rad(10)];
+map.goal = [14;4.0;deg2rad(180);0;0];
 
 x0 = map.start; % intial state
 P = 0.01*eye(5); % intial covariance
@@ -54,13 +54,13 @@ full_DDP = false;
 conFunc = @(b,u,k) constraintFunc(b,u,k);
 if strcmp(control_method, 'iLQG_AL')
     % these function is needed by iLQG_AL
-    xy_cstr_bound = 0.15;
-    ang_cstr_bound = 0.15; % temporary fix here since anonymous function call cannot return multiple values, write the x direction constraint
+    xy_cstr_bound = 0.13;
+    ang_cstr_bound = 0.1; % temporary fix here since anonymous function call cannot return multiple values, write the x direction constraint
     DYNCST  = @(b,u,lagMultiplier, mu,k) beliefDynCostConstr(b,u,lagMultiplier, mu,k,xf,nDT,full_DDP,mm,om,svc,conFunc,map); % For iLQG_AL
 elseif strcmp(control_method, 'iLQG')
-    info_cost = 1000; % temporary fix here since anonymous function call cannot return multiple values, write the parameter of Q_t
-%     DYNCST  = @(b,u,i) beliefDynCost(b,u,xf,nDT,full_DDP,mm,om,svc,map); % For iLQG
-    DYNCST  = @(b,u,i) beliefDynCost_nonsmooth(b,u,xf,nDT,full_DDP,mm,om,svc,map); % For iLQG without visibility smoothing
+    info_cost = 950; % temporary fix here since anonymous function call cannot return multiple values, write the parameter of Q_t
+    DYNCST  = @(b,u,i) beliefDynCost(b,u,xf,nDT,full_DDP,mm,om,svc,map); % For iLQG
+%     DYNCST  = @(b,u,i) beliefDynCost_nonsmooth(b,u,xf,nDT,full_DDP,mm,om,svc,map); % For iLQG without visibility smoothing
 end   
 
 % control constraints are optional
@@ -82,6 +82,8 @@ legend({'Start','Goal','Mean trajectory with covariance ellipses'},'Interpreter'
 set(gcf,'name','Belief Space Planning with iLQG','NumberT','off');
 set(gca,'Color',[0.0 0.0 0.0]);
 set(gca,'xlim',map.bounds(1,[1,2]),'ylim',map.bounds(2,[1,2]),'zlim',map.bounds(3,[1,2]),'DataAspectRatio',[1 1 1])
+% set(gca,'xlim',[0,15],'ylim',[0,15],'zlim',[0,15],'DataAspectRatio',[1 1 1])
+
 xlabel('X (m)'); ylabel('Y (m)'); zlabel('Z (m)');
 box on
 
@@ -119,13 +121,12 @@ else
         [b,u_opt,L_opt,~,~,optimCost,trace,~,tt, nIter]= iLQG_AL(DYNCST, b0, u0, Op);
     end
 end
-
-for k = 1:length(b(1,:))
+itc = round(linspace(1,length(b(1,:)),ceil(length(b(1,:))/5)));
+handles = [];
+for k = itc
     x_mean = b(1:5,k);
-    if mod(k-1,4) == 0
-        drawFoV(figh,om,x_mean,[]);
-    end
-    pause(0.1)
+    drawFoV(figh,om,x_mean,[]);
+%     pause(0.1)
 end
 
 
@@ -150,15 +151,19 @@ results.x0 = x0;
 results.xf = xf;
 results.trace = trace;
 
+[c,viol] = constraint_checker(b,u_opt,1e-3);
+violations = nnz(viol);
+cost_traj = sum(costFunc_wo_unc(b(:,2:end), u_opt, xf, size(b,2), 5, svc, map, Op.D, 1));
+
 %% plot the final trajectory and covariances
 
 % svcDyn = @(x)isStateValidAnimate(x,map,DYNAMIC_OBS); % state validity checker (collision)
-% 
+% % 
 % [didCollide, b_actual_traj, x_traj_true,trCov_vs_time{1},u_actual_traj] = animate(figh, plotFn, b0, b, u_opt, L_opt, mm, om, svcDyn, map, DYNAMIC_OBS);
-% 
+% % 
 % plot_traj(b, b_actual_traj, x_traj_true, dt, conFunc, outDatPath) % Plot belief errors
-% 
-% results.collision{1} = didCollide;
+% % 
+% % results.collision{1} = didCollide;
 % 
 % 
 % try

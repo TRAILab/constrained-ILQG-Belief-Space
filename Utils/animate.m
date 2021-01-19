@@ -50,8 +50,7 @@ distTrajToObs = zeros(1, length(b_nom(1,:))-1);
 trajLength = 0;
 
 failed = 0;
-FovHandleL = [];
-FovHandleR = [];
+handles = [];
 
 for i = 1:size(u_nom,2)
     
@@ -66,7 +65,7 @@ for i = 1:size(u_nom,2)
         end
     end
     
-    b = [x(:);motionModel.D_psuedoinv*P(:)]; % current belief
+    b = [x(:);motionModel.D_pseudoinv*P(:)]; % current belief
     
     u = u_nom(:,i) + L(:,:,i)*(b - b_nom(:,i));
     u_actual(:,i) = u;
@@ -92,8 +91,9 @@ for i = 1:size(u_nom,2)
     H = H(vis==1,:); % Only visible features
     z = z(vis==1); % Only visible features
     M = obsModel.getObservationNoiseJacobian(x,[],z);
-    variances_all_j = repmat([obsModel.var(1);obsModel.var(3)],length(z)/obsModel.obsDim,1);
-    R = diag(variances_all_j);
+    R = obsModel.getObservationNoiseCovarianceReal(x,z);
+    M = M(vis==1,vis==1);
+    R = R(vis==1,vis==1);
     
     % update P
     P_prd = A*P*A' + G*Q*G';
@@ -109,7 +109,7 @@ for i = 1:size(u_nom,2)
     end
     
     % final belief
-    b_f = [x;motionModel.D_psuedoinv*P(:)];
+    b_f = [x;motionModel.D_pseudoinv*P(:)];
     b_traj_t(:,i+1) = b_f;
     
     roboTraj(:,i+1) = xt;
@@ -147,8 +147,8 @@ for i = 1:size(u_nom,2)
     delete(rh)
     rh = fill(xt(1) + robotDisk(1,:),xt(2) + robotDisk(2,:),'b');
     set(get(get(rh,'Annotation'),'LegendInformation'),'IconDisplayStyle','off');
-    [FovHandleR,FovHandleL] = drawFoV(figh,obsModel,xt,FovHandleR,FovHandleL);
-    drawResult(plotFn,b_f,3,motionModel.D);
+    handles = drawFoV(figh,obsModel,xt,handles);
+    drawResult(plotFn,b_f,length(b(:,1)),motionModel.D);
     drawnow;
     legend({'Features','Start','Goal','Nominal rolled out trajectory'},'Interpreter','Latex')
     pause(0.05);

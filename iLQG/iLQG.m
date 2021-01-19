@@ -88,7 +88,7 @@ defaults = {'lims',           [],...            control limits
             'Alpha',          10.^linspace(0,-3,11),... backtracking coefficients
             'tolFun',         1e-3,...          reduction exit criterion
             'tolGrad',        1e-4,...          gradient exit criterion
-            'maxIter',        25,...           maximum iterations            
+            'maxIter',        50,...           maximum iterations            
             'lambda',         1,...             initial value for lambda
             'dlambda',        1,...             initial value for dlambda
             'lambdaFactor',   1.4,...           lambda scaling factor
@@ -181,6 +181,8 @@ if diverge
     L        = zeros(m,n,N);
     cost     = [];
     trace    = trace(1);
+    totaTime = [];
+    totalIterations = [];
     if verbosity > 0
         fprintf('\nEXIT: Initial control sequence caused divergence\n');
     end

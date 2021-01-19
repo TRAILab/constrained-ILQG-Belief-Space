@@ -14,9 +14,9 @@ function constr_values = constraintFunc(b,u,k)
 %     y_bound_3sig = 0.15; %0.13 tight 0.5 loose
 %     th_bound_3sig = 0.15; % 0.05 tight 0.1 loose
     
-    x_bound_3sig = 0.15; %0.13 tight 0.5 loose
-    y_bound_3sig = 0.15; %0.13 tight 0.5 loose
-    th_bound_3sig = 0.15; % 0.05 tight 0.1 loose
+    x_bound_3sig = 0.25; %0.13 tight 0.5 loose
+    y_bound_3sig = 0.25; %0.13 tight 0.5 loose
+    th_bound_3sig = 0.2; % 0.05 tight 0.1 loose
     
     
     unc_bound = ([x_bound_3sig;y_bound_3sig;th_bound_3sig]./3).^2;

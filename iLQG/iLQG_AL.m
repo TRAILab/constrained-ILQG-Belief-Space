@@ -89,12 +89,12 @@ defaults = {'lims',           [],...            control limits
             'tolFun',         1e-1,...          reduction exit criterion
             'tolGrad',        1e-2,...          gradient exit criterion
             'tolConstr',      1e-3,...          constraint satisfaction criterion
-            'maxIter',        15,...            maximum iterations
+            'maxIter',        25,...            maximum iterations
             'maxIterOuter',   15,...             maximum outer loop iterations  
             'lambda',         1e-2,...             initial value for lambda
             'dlambda',        1,...             initial value for dlambda
             'lambdaFactor',   1.4,...           lambda scaling factor
-            'lambdaMax',      1e2,...          lambda maximum value
+            'lambdaMax',      1e3,...          lambda maximum value
             'lambdaMin',      1e-6,...          below this value lambda = 0
             'regType',        1,...             regularization type 1: q_uu+lambda*eye(); 2: V_xx+lambda*eye()
             'zMin',           0,...             minimal accepted reduction ratio

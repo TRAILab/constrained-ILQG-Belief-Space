@@ -31,8 +31,8 @@ function [x_traj,u_traj,figh] = initial_rollout_quad(map,motion_model, waypoints
 %     x_traj = [x_traj, repmat(x_traj(:,end),1,timesteps_remaining)];
 %     u_traj = [u_traj, zeros(motion_model.ctDim,timesteps_remaining)];
     
-    figh = figure();
-    drawObstacles(figh,map)
-    drawLandmarks(figh,map)
-    plot(x_traj(1,:),x_traj(2,:),'r-o')
+%     figh = figure();
+%     drawObstacles(figh,map)
+%     drawLandmarks(figh,map)
+%     plot(x_traj(1,:),x_traj(2,:),'r-o')
 end
