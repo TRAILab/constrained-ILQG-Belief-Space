@@ -32,6 +32,7 @@ ctDim = motionModel.ctDim;
 
 if nargout == 2
     g = beliefDynamics(b, u, motionModel, obsModel);
+%     g = beliefDynamicsFIF(b, u, motionModel, obsModel);
     c = costFunction(b, u, xf, L, motionModel.stDim, collisionChecker, map, motionModel.D);
 else
     % belief state and control indices
@@ -40,6 +41,7 @@ else
     
     % dynamics first derivatives
     xu_dyn  = @(xu) beliefDynamics(xu(ib,:),xu(iu,:),motionModel, obsModel);
+%     xu_dyn  = @(xu) beliefDynamicsFIF(xu(ib,:),xu(iu,:),motionModel, obsModel);
     J       = finiteDifference(xu_dyn, [b; u]);
     gb      = J(:,ib,:);
     gu      = J(:,iu,:);

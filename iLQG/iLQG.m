@@ -142,11 +142,13 @@ trace(1).lambda = lambda;
 trace(1).dlambda = dlambda;
 
 % --- initial trajectory
+FoV_handles = [];
 if size(x0,2) == 1
     diverge = true;
     for alpha = Op.Alpha
         [x,un,cost]  = forward_pass(x0(:,1),alpha*u,[],[],[],1,DYNCST,Op.lims,[]);
         drawResult(Op.plotFn,x(:,:,1),n,Op.D);
+        FoV_handles = drawFoV(Op.om,x(:,:,1),FoV_handles,5);
         saveas(gcf,'iLQG-initialguess.jpg');
         pause(3);
         % simplistic divergence test
@@ -174,7 +176,7 @@ trace(1).init_cost = init_cost;
 
 % user plotting
 drawResult(Op.plotFn,x,n,Op.D);
-% Op.plotFn(x);
+FoV_handles = drawFoV(Op.om,x,FoV_handles,5);
 
 if diverge
     [Vx,Vxx, stop]  = deal(nan);
@@ -323,6 +325,7 @@ for iter = 1:Op.maxIter
         cost           = costnew;
         flgChange      = 1;
         drawResult(Op.plotFn,x,n,Op.D);
+        FoV_handles = drawFoV(Op.om,x,FoV_handles,5);
 %         Op.plotFn(x);
         
         % terminate ?

@@ -89,7 +89,7 @@ defaults = {'lims',           [],...            control limits
             'tolFun',         1e-1,...          reduction exit criterion
             'tolGrad',        1e-2,...          gradient exit criterion
             'tolConstr',      1e-3,...          constraint satisfaction criterion
-            'maxIter',        25,...            maximum iterations
+            'maxIter',        10,...            maximum iterations
             'maxIterOuter',   15,...             maximum outer loop iterations  
             'lambda',         1e-2,...             initial value for lambda
             'dlambda',        1,...             initial value for dlambda
@@ -152,11 +152,13 @@ trace(1).lambda = lambda;
 trace(1).dlambda = dlambda;
 
 % --- initial trajectory
+FoV_handles = [];
 if size(x0,2) == 1
     diverge = true;
     for alpha = Op.Alpha
         [x,un,cost, constr_val, max_constr]  = forward_pass(x0(:,1),alpha*u,lagMult, mu, [],[],[],1,DYNCST,Op.lims,[],J);
         drawResult(Op.plotFn,x(:,:,1),n,Op.D);
+        FoV_handles = drawFoV(Op.om,x(:,:,1),FoV_handles,5);
         saveas(gcf,'iLQG-initialguess.jpg');
         pause(3);
         % simplistic divergence test
@@ -183,6 +185,7 @@ init_cost = sum(cost(:));
 
 % user plotting
 drawResult(Op.plotFn,x,n,Op.D);
+FoV_handles = drawFoV(Op.om,x,FoV_handles,5);
 % Op.plotFn(x);
 
 if diverge
@@ -336,6 +339,7 @@ for iterOut = 1:Op.maxIterOuter
             max_constr     = max_constr_new;
             flgChange      = 1;
             drawResult(Op.plotFn,x,n,Op.D);
+            FoV_handles = drawFoV(Op.om,x,FoV_handles,5);
     %         Op.plotFn(x);
 
             % terminate ?

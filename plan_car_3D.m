@@ -12,8 +12,8 @@ close all;
 DYNAMIC_OBS = 0;
 
 dt = 0.1; % time step
-control_method = 'iLQG';
-% control_method = 'iLQG_AL';
+% control_method = 'iLQG';
+control_method = 'iLQG_AL';
 
 load(mapPath); % load map
 [~,map_name,~] = fileparts(mapPath);
@@ -28,11 +28,11 @@ ROBOT_RADIUS = 0.16; % robot radius is needed by collision checker
 svc = @(x)isStateValid(x,map,0); % state validity checker (collision)
 
 %% Setup start and goal/target state
-% map.start = [3;1;deg2rad(90);0;deg2rad(-30)];
-% map.goal = [8;7;deg2rad(-90);0;0];
+map.start = [3;1;deg2rad(90);0;deg2rad(-30)];
+map.goal = [8;7;deg2rad(-90);0;0];
 
-map.start = [5;0.5;deg2rad(0);0;deg2rad(10)];
-map.goal = [14;4.0;deg2rad(180);0;0];
+% map.start = [5;0.5;deg2rad(0);0;deg2rad(10)];
+% map.goal = [14;4.0;deg2rad(180);0;0];
 
 x0 = map.start; % intial state
 P = 0.01*eye(5); % intial covariance
@@ -80,7 +80,7 @@ scatter(x0(1),x0(2),250,'filled','MarkerFaceAlpha',1/2,'MarkerFaceColor',[1.0 0.
 scatter(xf(1),xf(2),250,'filled','MarkerFaceAlpha',1/2,'MarkerFaceColor',[0.0 1.0 0.0])
 legend({'Start','Goal','Mean trajectory with covariance ellipses'},'Interpreter','Latex')
 set(gcf,'name','Belief Space Planning with iLQG','NumberT','off');
-set(gca,'Color',[0.0 0.0 0.0]);
+% set(gca,'Color',[0.0 0.0 0.0]);
 set(gca,'xlim',map.bounds(1,[1,2]),'ylim',map.bounds(2,[1,2]),'zlim',map.bounds(3,[1,2]),'DataAspectRatio',[1 1 1])
 % set(gca,'xlim',[0,15],'ylim',[0,15],'zlim',[0,15],'DataAspectRatio',[1 1 1])
 
@@ -94,6 +94,7 @@ plotFn = @(x) set(line_handle,'Xdata',x(1,:),'Ydata',x(2,:));
 legend({'Features','Start','Goal','Mean trajectory with covariance ellipses'},'Interpreter','Latex')
 Op.plotFn = plotFn;
 Op.D = mm.D;
+Op.om = om;
 
 
 %% === run the optimization
@@ -125,7 +126,7 @@ itc = round(linspace(1,length(b(1,:)),ceil(length(b(1,:))/5)));
 handles = [];
 for k = itc
     x_mean = b(1:5,k);
-    drawFoV(figh,om,x_mean,[]);
+    drawFoV(om,x_mean,[]);
 %     pause(0.1)
 end
 

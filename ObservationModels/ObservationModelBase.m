@@ -13,6 +13,8 @@ classdef ObservationModelBase < handle
     properties
         landmarkIDs; % All landmark IDS in the world
         landmarkPoses; % landmark locations
+        D = [];
+        D_pseudoinv = [];
     end
     
     methods (Abstract)

@@ -15,7 +15,7 @@ if size(map.bounds,1) == 2
         obs = map.obstacles(:,i);
         lp = obs - [R;R];
         pos = [lp' R R];
-        p = rectangle('Position',pos','FaceColor','m');
+        p = rectangle('Position',pos','FaceColor',[0.66, 0.84, 0.92]);
         p.Annotation.LegendInformation.IconDisplayStyle = 'off';
     end
 else
@@ -24,7 +24,7 @@ else
         obs = map.obstacles(:,i);
         lp = obs - [R;R];
         pos = [lp',0];
-        plotcube([R,R,R],pos,1,[1,0,1]);
+        plotcube([R,R,R],pos,1,[0.66, 0.84, 0.92]);
 %         p.Annotation.LegendInformation.IconDisplayStyle = 'off';
     end
 

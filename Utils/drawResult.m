@@ -14,7 +14,7 @@ elseif bfDim == 9
     stDim = 3;
 end
 
-itp = round(linspace(1,L,ceil(L/3))); % indexes to plot
+itp = round(linspace(1,L,ceil(L/5))); % indexes to plot
 
 x = b(1:stDim,:);
 
@@ -28,16 +28,16 @@ phi= 0:inc:2*pi;
 sigmaScale = 3;
 
 % plot box around robot center
-if stDim == 5   
-    itp = round(linspace(1,L,ceil(L/5))); % indexes to plot means    
-    for i = itp
-            plotBoxes(x(:,i),0.3);
-    end
-elseif  stDim == 3
-    for i = itp
-            plotDiscs(x(:,i),0.5)
-    end
-end
+% if stDim == 5   
+%     itp = round(linspace(1,L,ceil(L/5))); % indexes to plot means    
+%     for i = itp
+%             plotBoxes(x(:,i),0.3);
+%     end
+% elseif  stDim == 3
+%     for i = itp
+%             plotDiscs(x(:,i),0.5)
+%     end
+% end
 
 % get covariances
 for i = itp

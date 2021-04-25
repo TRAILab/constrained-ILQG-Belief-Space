@@ -73,7 +73,7 @@ else
     
     %nSigma = sigmaToCollide(b, motionModel.stDim, motionModel.D, collisionChecker);
     nSigma = sigmaToCollide2(b, motionModel.stDim, motionModel.D, map);
-%     fprintf('Time to do sigma derivative and compute sigma: %f seconds\n', toc(tStart))
+    fprintf('Time to do sigma derivative and compute sigma: %f seconds\n', toc(tStart))
     
     %% cost first derivatives
     tStart = tic;
@@ -92,7 +92,7 @@ else
     
     cb      = J(ib,:);
     cu      = J(iu,:);
-%     fprintf('Time to do cost Jacobian: %f seconds\n', toc(tStart))
+    fprintf('Time to do cost Jacobian: %f seconds\n', toc(tStart))
     
     %% cost second derivatives
     
@@ -117,7 +117,7 @@ else
     cbb     = JJ(ib,ib,:);
     cbu     = JJ(ib,iu,:);
     cuu     = JJ(iu,iu,:);            
-%     fprintf('Time to do cost Hessian: %f seconds\n', toc(tStart))
+    fprintf('Time to do cost Hessian: %f seconds\n', toc(tStart))
     
     [g,c,constr_values] = deal([]);
 end
