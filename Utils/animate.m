@@ -72,6 +72,7 @@ for i = 1:size(u_nom,2)
     
     % update robot
     processNoise = motionModel.generateProcessNoise(xt,u); % process noise
+%     zeroProcessNoise = motionModel.zeroNoise; % process noise
     xt = motionModel.evolve(xt,u,processNoise);
     %xt = motionModel.evolve(xt,u,motionModel.zeroNoise);
     
@@ -136,9 +137,9 @@ for i = 1:size(u_nom,2)
     
     % if robot is in collision
     if stateValidityChecker(xt) == 0
-        figure(figh);
-        plot(roboTraj(1,1:i+1),roboTraj(2,1:i+1),'g', 'LineWidth',2);
-        drawnow;
+%         figure(figh);
+%         plot(roboTraj(1,1:i+1),roboTraj(2,1:i+1),'g', 'LineWidth',2);
+%         drawnow;
         warning('Robot collided :( ');
         failed = 1;
         return;
@@ -147,12 +148,13 @@ for i = 1:size(u_nom,2)
     delete(rh)
     rh = fill(xt(1) + robotDisk(1,:),xt(2) + robotDisk(2,:),'b');
     set(get(get(rh,'Annotation'),'LegendInformation'),'IconDisplayStyle','off');
-    handles = drawFoV(figh,obsModel,xt,handles);
+    handles = drawFoV(obsModel,xt,handles,1);
     drawResult(plotFn,b_f,length(b(:,1)),motionModel.D);
     drawnow;
     legend({'Features','Start','Goal','Nominal rolled out trajectory'},'Interpreter','Latex')
     pause(0.05);
 end
+
 
 constr_values = constraintFunc(b_traj_t(:,2:end), u_actual, 1:size(u_nom,2));
 fprintf(['\n'...

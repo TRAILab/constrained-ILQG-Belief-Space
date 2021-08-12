@@ -59,7 +59,10 @@ P = reshape(vecP,stDim,stDim); % Covariance Matrix
 
 % update state
 processNoise = motionModel.zeroNoise; % 0 process noise
-x_next = motionModel.evolve(x,u,processNoise); 
+x_next = motionModel.evolve(x,u,processNoise);
+if x_next(2) < 0
+    warning('y is negative')
+end
 
 % Get motion model jacobians
 A = motionModel.getStateTransitionJacobian(x,u,processNoise);
@@ -86,13 +89,17 @@ C_I_nearest = obsModel.nearestFIF_pos(x_next);
 V_I = obsModel.compute_FIM_rot(x_next);
 innovation_info = V_I*C_I_nearest;
 
-if rank(innovation_info)<stDim
-    P_next = P_prd;
-else
-    P_next_inv = inv(P_prd) + innovation_info;
-    P_next = inv(P_next_inv);
-end
+% if rank(innovation_info)<stDim
+%     P_next = P_prd;
+% else
+%     P_next_inv = inv(P_prd) + innovation_info;
+%     P_next = inv(P_next_inv);
+% end
 
+%information form
+% innovation_info = H'*R_inv*H;
+P_next_inv = inv(P_prd) + innovation_info;
+P_next = inv(P_next_inv);
 P_next = 0.5.*(P_next + P_next.');
 
 

@@ -12,7 +12,7 @@ function [yesno,c2c_padded] = isStateValidAnimate(x, map, dynamicObs)
 
 % robot radius
 global ROBOT_RADIUS;
-R = ROBOT_RADIUS;
+R = ROBOT_RADIUS/2;
 
 N = 50; % discretize robot body
 delta_theta = 2*pi/N;

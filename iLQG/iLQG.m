@@ -199,11 +199,11 @@ z           = 0;
 expected    = 0;
 print_head  = 6; % print headings every print_head lines
 last_head   = print_head;
-t_start     = tic;
 if verbosity > 0
     fprintf('\n=========== begin iLQG ===========\n');
 end
 graphics(Op.plot,x,u,cost,zeros(m,n,N),[],[],[],[],[],[],trace,1,init_cost);
+t_start     = tic;
 for iter = 1:Op.maxIter
     if stop
         break;

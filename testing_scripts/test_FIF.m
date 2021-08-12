@@ -21,8 +21,8 @@ figh = figure;
 drawLandmarks(figh,map);
 drawObstacles(figh,map);
 scatter(x0(1),x0(2),250,'filled','MarkerFaceAlpha',1/2,'MarkerFaceColor',[1.0 0.0 0.0])
-set(gca,'xlim',map.bounds(1,[1,2]),'ylim',map.bounds(2,[1,2]),'zlim',map.bounds(3,[1,2]),'DataAspectRatio',[1 1 1])
-% set(gca,'xlim',[0,10],'ylim',[0,10],'zlim',[0,3],'DataAspectRatio',[1 1 1])
+% set(gca,'xlim',map.bounds(1,[1,2]),'ylim',map.bounds(2,[1,2]),'zlim',map.bounds(3,[1,2]),'DataAspectRatio',[1 1 1])
+set(gca,'xlim',[0,10],'ylim',[0,10],'zlim',[0,3],'DataAspectRatio',[1 1 1])
 xlabel('X (m)'); ylabel('Y (m)'); zlabel('Z (m)');
 box on
 drawFoV(om,traj,[],3);

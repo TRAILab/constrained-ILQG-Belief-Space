@@ -9,10 +9,6 @@ function main
 % close all
 clear all
 clc
-% add subfolders to path
-% addpath(genpath('./'));
-% clean up
-% clear variables; clc; close all; dbstop if error;
 
 fprintf('\n A demonstration of the iLQG algorithm for Belief Space Planning \n')
 
@@ -23,9 +19,8 @@ CREATE_OUTPUT_DIRECTORY = 1; % set to 1 for writing output
 NUM_SIMS = 1;
 
 % which map to use
-% fname = 'mapTask3';
-% fname = 'with_normals4';
-fname = '3D_1';
+
+fname = 'gap_left';
 
 % create full path to map name
 mapFilePath = strcat('./Maps/',fname,'.mat');
@@ -53,7 +48,7 @@ end
 
 % path to where data is written
 outDatPath = strcat(baseDirectory, envSettingFolderName, '/');
-trainPath = strcat('./Results_test/', envSettingFolderName, '/');
+trainPath = strcat('./Results_FIFTest/', envSettingFolderName, '/');
 
 % Create new directory
 if CREATE_OUTPUT_DIRECTORY

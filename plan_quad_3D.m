@@ -20,10 +20,7 @@ load(mapPath); % load map
 
 mm = quadrotorPlanar(dt); % motion model
 
-% om = stereoCamModel(1:length(map.landmarks(1,:)),map.landmarks); % observation model
-
-om = bearingSensor(1:length(map.landmarks(1,:)),map.landmarks); % bearing sensor model
-om.loadFIF('FIF/FIF_map_3D_1_v0_5_n_0_01.mat');
+om = stereoCamModel(1:length(map.landmarks(1,:)),map.landmarks); % observation model
 
 global ROBOT_RADIUS;
 ROBOT_RADIUS = 0.16; % robot radius is needed by collision checker
@@ -32,7 +29,7 @@ svc = @(x)isStateValid(x,map,0); % state validity checker (collision)
 
 %% Setup start and goal/target state
 map.start = [3;1;deg2rad(90)];
-map.goal = [8;8.5;deg2rad(-35)];
+map.goal = [8;6;deg2rad(-90)];
 
 % map.start = [5;0.5;deg2rad(0)];
 % map.goal = [13;5.0;deg2rad(45)];
@@ -61,8 +58,9 @@ if strcmp(control_method, 'iLQG_AL')
     ang_cstr_bound = 0.1 ; % temporary fix here since anonymous function call cannot return multiple values, write the x direction constraint
     DYNCST  = @(b,u,lagMultiplier, mu,k) beliefDynCostConstr(b,u,lagMultiplier, mu,k,xf,nDT,full_DDP,mm,om,svc,conFunc,map); % For iLQG_AL
 elseif strcmp(control_method, 'iLQG')
-    info_cost = 900; % temporary fix here since anonymous function call cannot return multiple values, write the parameter of Q_t
+    info_cost = 2000; % temporary fix here since anonymous function call cannot return multiple values, write the parameter of Q_t
     DYNCST  = @(b,u,i) beliefDynCost(b,u,xf,nDT,full_DDP,mm,om,svc,map); % For iLQG
+%     DYNCST  = @(b,u,i) beliefDynCostFIF(b,u,xf,nDT,full_DDP,mm,om,svc,map); % Use FIF based dynamics
 %     DYNCST  = @(b,u,i) beliefDynCost_nonsmooth(b,u,xf,nDT,full_DDP,mm,om,svc,map); % For iLQG without visibility smoothing
 end   
 
@@ -84,8 +82,8 @@ scatter(xf(1),xf(2),250,'filled','MarkerFaceAlpha',1/2,'MarkerFaceColor',[0.0 1.
 legend({'Start','Goal','Mean trajectory with covariance ellipses'},'Interpreter','Latex')
 set(gcf,'name','Belief Space Planning with iLQG','NumberT','off');
 % set(gca,'Color',[0.0 0.0 0.0]);
-set(gca,'xlim',map.bounds(1,[1,2]),'ylim',map.bounds(2,[1,2]),'zlim',map.bounds(3,[1,2]),'DataAspectRatio',[1 1 1])
-%  set(gca,'xlim',[0,10],'ylim',[0,10],'zlim',[0,3],'DataAspectRatio',[1 1 1])
+% set(gca,'xlim',map.bounds(1,[1,2]),'ylim',map.bounds(2,[1,2]),'zlim',map.bounds(3,[1,2]),'DataAspectRatio',[1 1 1])
+ set(gca,'xlim',[0,9],'ylim',[0,10],'zlim',[0,3],'DataAspectRatio',[1 1 1])
 xlabel('X (m)'); ylabel('Y (m)'); zlabel('Z (m)');
 box on
 
@@ -101,7 +99,8 @@ Op.om = om;
 
 %% === run the optimization
 if strcmp(control_method, 'iLQG')
-    training_file_name = strcat(control_method, '_cost_', num2str(info_cost,3), '_map_', map_name, '.mat');
+    training_file_name = strcat(control_method, '_cost_', num2str(info_cost,3), '_map', map_name, '.mat');
+%     training_file_name = strcat(control_method, '_cost_', num2str(info_cost,3), '_map', map_name, 'FIF.mat');
 elseif strcmp(control_method, 'iLQG_AL')
     training_file_name = strcat(control_method, '_cstr_', num2str(xy_cstr_bound,3), '_', num2str(ang_cstr_bound,3), '_map_', map_name, '.mat');
 end
@@ -124,20 +123,13 @@ else
         [b,u_opt,L_opt,~,~,optimCost,trace,~,tt, nIter]= iLQG_AL(DYNCST, b0, u0, Op);
     end
 end
-% [b,u_opt,~,~,~,~,~,~,~, ~]= iLQG(DYNCST, b0, u0, Op);
-% itc = round(linspace(1,length(b(1,:)),ceil(length(b(1,:))/3)));
-% for k = itc
-%     x_mean = b(1:3,k);
-%     drawFoV(figh,om,x_mean,[]);
-% %     pause(0.1)
-% end
-% drawResult(plotFn, b,length(b(:,1)),mm.D)
+
 drawFoV(om,b(1:3,:),[],1);
 
 
 %% Save result figure
 try
-    savefig(figh,strcat(outDatPath,'iLQG-solution'));
+%     savefig(figh,strcat(outDatPath,'iLQG-solution'));
 %     savefig(initGuessFigure,strcat(outDatPath,'RRT-initGuess'));
 catch ME
     warning('Could not save figs')
@@ -160,11 +152,11 @@ cost_traj = sum(costFunc_wo_unc(b(:,2:end), u_opt, xf, size(b,2), 3, svc, map, O
 
 %% plot the final trajectory and covariances
 
-% svcDyn = @(x)isStateValidAnimate(x,map,DYNAMIC_OBS); % state validity checker (collision)
+svcDyn = @(x)isStateValidAnimate(x,map,DYNAMIC_OBS); % state validity checker (collision)
 % % 
-% [didCollide, b_actual_traj, x_traj_true,trCov_vs_time{1},u_actual_traj] = animate(figh, plotFn, b0, b, u_opt, L_opt, mm, om, svcDyn, map, DYNAMIC_OBS);
+[didCollide, b_actual_traj, x_traj_true,trCov_vs_time{1},u_actual_traj] = animate(figh, plotFn, b0, b, u_opt, L_opt, mm, om, svcDyn, map, DYNAMIC_OBS);
 % 
-% plot_traj(b, b_actual_traj, x_traj_true, dt, conFunc, outDatPath) % Plot belief errors
+plot_traj(b, b_actual_traj, x_traj_true, dt, conFunc, outDatPath) % Plot belief errors
 % 
 % results.collision{1} = didCollide;
 % 

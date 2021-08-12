@@ -15,7 +15,8 @@ classdef bearingSensor < ObservationModelBase
         c_v = 247.4814;
         b = 0.24;
         var = [37.9799470231445;129.835565602725;41.9527461930872;132.489132838227];
-        bear_var = 0.01;
+        bear_var = 5.5068e-04;
+        bear_var_noniso = [5.5068e-04;5.5068e-04;1e-6];
         C_cv = [0,-1,0;
                 0,0,-1;
                 1,0,0];
@@ -274,8 +275,8 @@ classdef bearingSensor < ObservationModelBase
             alpha = acos(r_jc_i_norm.'*e_j);
             
             if theta <= obj.FoV/2 && alpha <=obj.max_alpha/2
-%                 p_vis = 0.5*(cos(pi*theta/(obj.FoV/2)) + 1)*0.5*(cos(pi*alpha/(obj.max_alpha/2)) + 1);
-                p_vis = 0.5*(cos(pi*theta/(obj.FoV/2)) + 1);
+                p_vis = 0.5*(cos(pi*theta/(obj.FoV/2)) + 1)*0.5*(cos(pi*alpha/(obj.max_alpha/2)) + 1);
+%                 p_vis = 0.5*(cos(pi*theta/(obj.FoV/2)) + 1);
             else
                 p_vis = 0;
             end
@@ -288,7 +289,8 @@ classdef bearingSensor < ObservationModelBase
         
         function R = getObservationNoiseCovariance(obj,x,z)
             
-           variances_all_j = repmat(obj.var,length(obj.landmarkIDs),1);          
+%            variances_all_j = repmat(obj.var,length(obj.landmarkIDs),1); 
+           variances_all_j = repmat(obj.bear_var,3*length(obj.landmarkIDs),1);
            R = diag(variances_all_j);
           %Scale by visibility
            for j = 1:length(obj.landmarkIDs)
@@ -304,7 +306,8 @@ classdef bearingSensor < ObservationModelBase
         
         function R = getObservationNoiseCovarianceReal(obj,x,z)
             
-           variances_all_j = repmat(obj.var,length(obj.landmarkIDs),1);          
+%            variances_all_j = repmat(obj.var,length(obj.landmarkIDs),1);
+           variances_all_j = repmat(obj.bear_var,3*length(obj.landmarkIDs),1);
            R = diag(variances_all_j);
             
         end
@@ -359,7 +362,9 @@ classdef bearingSensor < ObservationModelBase
             x_nearest = round(x(1)/obj.ds) + 1;
             y_nearest = round(x(2)/obj.ds) + 1;
             
+
             FIF_pos = obj.FIF(x_nearest,y_nearest,:);
+
             FIF_pos = reshape(FIF_pos,obj.stDim*obj.N_v,obj.stDim);
         end
         

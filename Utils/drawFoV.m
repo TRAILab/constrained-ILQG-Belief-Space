@@ -52,7 +52,7 @@ function [handles] = drawFoV(meas_model,x,handles, j)
             
         else
 
-            if length(x(:,1)) == 3
+            if length(x(:,1)) == 3 || length(x(:,1)) == 9
                 phi = 0;
                 psi = meas_model.psi;
             else

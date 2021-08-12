@@ -14,7 +14,7 @@ elseif bfDim == 9
     stDim = 3;
 end
 
-itp = round(linspace(1,L,ceil(L/5))); % indexes to plot
+itp = round(linspace(1,L,ceil(L/3))); % indexes to plot
 
 x = b(1:stDim,:);
 

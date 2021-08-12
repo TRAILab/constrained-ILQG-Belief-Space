@@ -77,14 +77,20 @@ R_inv = obsModel.getObservationNoiseCovarianceInverse(x,z);
 % % update P 
 P_prd = A*P*A' + G*Q*G';
 
+% %information form
+% innovation_info = H'*R_inv*H;
+% if rank(innovation_info)<stDim
+%     P_next = P_prd;
+% else
+%     P_next_inv = inv(P_prd) + innovation_info;
+%     P_next = inv(P_next_inv);
+% end
+
 %information form
 innovation_info = H'*R_inv*H;
-if rank(innovation_info)<stDim
-    P_next = P_prd;
-else
-    P_next_inv = inv(P_prd) + innovation_info;
-    P_next = inv(P_next_inv);
-end
+P_next_inv = inv(P_prd) + innovation_info;
+P_next = inv(P_next_inv);
+
 
 P_next = 0.5.*(P_next + P_next.');
 

@@ -12,8 +12,8 @@ close all;
 DYNAMIC_OBS = 0;
 
 dt = 0.1; % time step
-% control_method = 'iLQG';
-control_method = 'iLQG_AL';
+control_method = 'iLQG';
+% control_method = 'iLQG_AL';
 
 load(mapPath); % load map
 [~,map_name,~] = fileparts(mapPath);
@@ -58,7 +58,7 @@ if strcmp(control_method, 'iLQG_AL')
     ang_cstr_bound = 0.1; % temporary fix here since anonymous function call cannot return multiple values, write the x direction constraint
     DYNCST  = @(b,u,lagMultiplier, mu,k) beliefDynCostConstr(b,u,lagMultiplier, mu,k,xf,nDT,full_DDP,mm,om,svc,conFunc,map); % For iLQG_AL
 elseif strcmp(control_method, 'iLQG')
-    info_cost = 950; % temporary fix here since anonymous function call cannot return multiple values, write the parameter of Q_t
+    info_cost = 951; % temporary fix here since anonymous function call cannot return multiple values, write the parameter of Q_t
     DYNCST  = @(b,u,i) beliefDynCost(b,u,xf,nDT,full_DDP,mm,om,svc,map); % For iLQG
 %     DYNCST  = @(b,u,i) beliefDynCost_nonsmooth(b,u,xf,nDT,full_DDP,mm,om,svc,map); % For iLQG without visibility smoothing
 end   
@@ -80,9 +80,10 @@ scatter(x0(1),x0(2),250,'filled','MarkerFaceAlpha',1/2,'MarkerFaceColor',[1.0 0.
 scatter(xf(1),xf(2),250,'filled','MarkerFaceAlpha',1/2,'MarkerFaceColor',[0.0 1.0 0.0])
 legend({'Start','Goal','Mean trajectory with covariance ellipses'},'Interpreter','Latex')
 set(gcf,'name','Belief Space Planning with iLQG','NumberT','off');
-% set(gca,'Color',[0.0 0.0 0.0]);
-set(gca,'xlim',map.bounds(1,[1,2]),'ylim',map.bounds(2,[1,2]),'zlim',map.bounds(3,[1,2]),'DataAspectRatio',[1 1 1])
+% set(gca,'xlim',map.bounds(1,[1,2]),'ylim',map.bounds(2,[1,2]),'zlim',map.bounds(3,[1,2]),'DataAspectRatio',[1 1 1])
 % set(gca,'xlim',[0,15],'ylim',[0,15],'zlim',[0,15],'DataAspectRatio',[1 1 1])
+set(gca,'xlim',[0,9],'ylim',[0,10],'zlim',[0,3],'DataAspectRatio',[1 1 1])
+
 
 xlabel('X (m)'); ylabel('Y (m)'); zlabel('Z (m)');
 box on
@@ -122,11 +123,11 @@ else
         [b,u_opt,L_opt,~,~,optimCost,trace,~,tt, nIter]= iLQG_AL(DYNCST, b0, u0, Op);
     end
 end
-itc = round(linspace(1,length(b(1,:)),ceil(length(b(1,:))/5)));
+itc = round(linspace(1,length(b(1,:)),ceil(length(b(1,:))/1)));
 handles = [];
 for k = itc
     x_mean = b(1:5,k);
-    drawFoV(om,x_mean,[]);
+    handles = drawFoV(om,x_mean,handles,1);
 %     pause(0.1)
 end
 
@@ -156,9 +157,11 @@ results.trace = trace;
 violations = nnz(viol);
 cost_traj = sum(costFunc_wo_unc(b(:,2:end), u_opt, xf, size(b,2), 5, svc, map, Op.D, 1));
 
+drawFoV(om,b(1:5,:),[],4);
+
 %% plot the final trajectory and covariances
 
-% svcDyn = @(x)isStateValidAnimate(x,map,DYNAMIC_OBS); % state validity checker (collision)
+svcDyn = @(x)isStateValidAnimate(x,map,DYNAMIC_OBS); % state validity checker (collision)
 % % 
 % [didCollide, b_actual_traj, x_traj_true,trCov_vs_time{1},u_actual_traj] = animate(figh, plotFn, b0, b, u_opt, L_opt, mm, om, svcDyn, map, DYNAMIC_OBS);
 % % 
