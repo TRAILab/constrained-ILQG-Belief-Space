@@ -137,7 +137,7 @@ end
 lambda   = Op.lambda;
 dlambda  = Op.dlambda;
 lagMult = ones(J,N +1);
-mu = 100.*ones(J,N +1);
+mu = 1.*ones(J,N +1);
 phi = repmat(Op.phi,1,N+1);
 tolConstr = Op.tolConstr;
 
@@ -612,7 +612,7 @@ function [lagMultNew, muNew, phiNew] = updateMultPen(constr_vals, lagMult, mu, p
                if t >= -0.5
                    lagMultNew(j,k) = lagMult(j,k) + mu(j,k)*constr_vals(j,k); %derivative of penalty func with respect to constraint func
                else
-                   lagMultNew(j,k) = (lagMult(j,k)^2)/(4*mu(j,k)*constr_vals(j,k));
+                   lagMultNew(j,k) = -(lagMult(j,k)^2)/(4*mu(j,k)*constr_vals(j,k));
                end
 
                % Tighten tolerances, keep penalty params same

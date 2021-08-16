@@ -8,7 +8,7 @@ function constr_values = constraintFunc(b,u,k)
 %   k: Timestep
 %
 % Outputs:
-%   b_next: Updated belief vector
+%   constr_values: constraint violation values,
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %     x_bound_3sig = 0.15; %0.13 tight 0.5 loose
 %     y_bound_3sig = 0.15; %0.13 tight 0.5 loose

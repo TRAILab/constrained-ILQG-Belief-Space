@@ -151,6 +151,7 @@ function cost = evaluateCost(b, u, lagMultiplier, mu, goal,  stDim, L, stateVali
 
 
     cost = sc + uc + 350*w_cc*cc + pc;
+%     cost = sc + uc + pc;
 
 end
 

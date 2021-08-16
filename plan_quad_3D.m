@@ -12,8 +12,8 @@ close all;
 DYNAMIC_OBS = 0;
 
 dt = 0.1; % time step
-control_method = 'iLQG';
-% control_method = 'iLQG_AL';
+% control_method = 'iLQG';
+control_method = 'iLQG_AL';
 
 load(mapPath); % load map
 [~,map_name,~] = fileparts(mapPath);
@@ -51,7 +51,12 @@ nDT = size(u0,2); % Time steps
 % dynamics. This will make iterations more expensive, but
 % final convergence will be much faster (quadratic)
 full_DDP = false;
-conFunc = @(b,u,k) constraintFunc(b,u,k);
+% conFunc = @(b,u,k) constraintFunc(b,u,k);
+
+del_r = 0.05;
+conFunc = @(b,u,k) chance_constr(b,u,k,map,mm.stDim,mm.D,del_r);
+Op.no_constr = length(map.obstacles(1,:));
+Op.phi = repmat(0.01,Op.no_constr,1);
 if strcmp(control_method, 'iLQG_AL')
     % these function is needed by iLQG_AL
     xy_cstr_bound = 0.13;
