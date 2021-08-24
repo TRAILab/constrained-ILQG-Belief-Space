@@ -39,7 +39,7 @@ function [map] = create_3D_course(save_map)
                  7,8]';
              map.obstacle_sizes = [2,1,2,2,2,2,2,2,2, 2,2,1,1,1, 2,2,2,2,2,2, 1,1,1,1,1,1,1,1];
 
-    % Landmarks are [x_pos,y_pos, direction]
+    % Landmarks are [x_pos,y_pos, z_pos, viewing_direction]
     % Direction of landmarks is in degrees and measured from world x-axis, used for detecting parallax
     % error while feature matching
     map.landmarks = [
@@ -113,6 +113,11 @@ function [map] = create_3D_course(save_map)
     
     % sPath = '/home/wavelab/Research_code/bsp-ilqg-master/Maps/course2dhard2.mat';
     sPath = 'Maps/3D_many_left.mat';
+    
+%     figh = figure;
+%     drawLandmarks(figh,map);
+%     drawObstacles(figh,map);
+%     set(gca,'xlim',map.bounds(1,[1,2]),'ylim',map.bounds(2,[1,2]),'zlim',map.bounds(3,[1,2]),'DataAspectRatio',[1 1 1]);
 
     if save_map == 1
         save(sPath,'map');
@@ -121,28 +126,4 @@ function [map] = create_3D_course(save_map)
 fprintf('Done \n');
 end
 
-% %                      6,9,2,-90;
-% %                      8,9,2,-90;
-% %                      8,9,-90;
-% %                      8,10,-45;
-% %                      10,10,225;
-% %  %                    10,3,1,180;
-%                      6,1,1,-135;
-%                      6,8,1,135;
-%                      7,8,1,45;
-%                      7,1,1,45;
-%                      9,1.5,1,135].';
-%                      9,1.5,1,45;
-%                      13,3,0,-45;
-%                      13,4,0,0;
-% %                      10,3,0,-135;
-%                      12,1,2,90;
-%                      14,1,2,135;
-% %                      15,6,0,-135
-%                      14,6,2,-90;
-%                      10,3,1,-135;
-%                      13,4,1,0
-%                      9,0.5,1,180].';
-%     map.start = [3;1;deg2rad(90),0,0];
-%     map.goal = [12;5;wrapTo2Pi(-1.4056),0,0];
 
