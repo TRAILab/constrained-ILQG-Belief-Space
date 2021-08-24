@@ -103,11 +103,11 @@ classdef stereoCamModel < ObservationModelBase
             theta = acos(p_jc_c_norm.'*[0;0;1]);
             
             %Calculate visibility, parallax angle alpha
-            r_jk_i = -p_ji_i(1:3) + [x_rob(1:2);obj.height];
-            r_jk_i_norm = r_jk_i./norm(r_jk_i);
+            r_kj_i = -p_ji_i(1:3) + [x_rob(1:2);obj.height];
+            r_kj_i_norm = r_kj_i./norm(r_kj_i);
             e_j = [cos(th_j);sin(th_j);0];
             
-            alpha = acos(r_jk_i_norm.'*e_j);
+            alpha = acos(r_kj_i_norm.'*e_j);
             
             if theta <= obj.FoV/2 && alpha <=obj.max_alpha/2
                 isVisible = 1;

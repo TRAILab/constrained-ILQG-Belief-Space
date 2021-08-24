@@ -137,7 +137,7 @@ end
 lambda   = Op.lambda;
 dlambda  = Op.dlambda;
 lagMult = ones(J,N +1);
-mu = 1.*ones(J,N +1);
+mu = 10000.*ones(J,N +1);
 phi = repmat(Op.phi,1,N+1);
 tolConstr = Op.tolConstr;
 

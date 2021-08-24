@@ -15,8 +15,8 @@ function [FIF] = generateFIF(om,map,v_alpha, ds, saveFile)
 %   FIF: 3D Array for 2D positional world. FIF(i,j,:) will retrieve the 
 %        vectorized form of the information matrix at x = i, y = j position
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    name = 'FIF_3D1_v0_5_n_0_01.mat';
-    om.set_vis_coeffs(v_alpha);
+    name = 'FIF_3Dlmany_n20_n_0_05.mat';
+    om.fit_vis_coeffs(v_alpha, ds);
     I = map.bounds(1,2) - map.bounds(1,1);
     J = map.bounds(2,2) - map.bounds(2,1);
     FIF = zeros(I/ds,J/ds,om.stDim^2*om.N_v);
@@ -36,7 +36,7 @@ function [FIF] = generateFIF(om,map,v_alpha, ds, saveFile)
     
     if saveFile == 1
         FIF_name = strcat('./FIF/',name);
-        save(FIF_name,'FIF');
+        save(FIF_name,'FIF','-v7.3');
     end
 end
 

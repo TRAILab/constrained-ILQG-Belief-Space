@@ -60,7 +60,7 @@ if ctrlDim == 2 % quadPlane robot
     Q_l(3,3) = 0;
 end
 if ctrlDim == 3
-    R_t = 3*eye(ctrlDim);
+    R_t = 30*eye(ctrlDim);
     R_t(3,3) = 1;
     Q_l(3,3) = 0;
 end

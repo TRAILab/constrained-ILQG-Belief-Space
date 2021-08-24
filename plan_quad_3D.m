@@ -12,15 +12,20 @@ close all;
 DYNAMIC_OBS = 0;
 
 dt = 0.1; % time step
-% control_method = 'iLQG';
-control_method = 'iLQG_AL';
+control_method = 'iLQG';
+% control_method = 'iLQG_AL';
 
 load(mapPath); % load map
 [~,map_name,~] = fileparts(mapPath);
 
 mm = quadrotorPlanar(dt); % motion model
 
-om = stereoCamModel(1:length(map.landmarks(1,:)),map.landmarks); % observation model
+% om = stereoCamModel(1:length(map.landmarks(1,:)),map.landmarks); % observation model
+om = bearingSensor(1:length(map.landmarks(1,:)),map.landmarks);
+ks = 20;
+ds = 0.05;
+om.fit_vis_coeffs(ks,ds);
+om.loadFIF('FIF/FIF_3Dlmany_n20_n_0_05.mat');
 
 global ROBOT_RADIUS;
 ROBOT_RADIUS = 0.16; % robot radius is needed by collision checker
@@ -29,7 +34,7 @@ svc = @(x)isStateValid(x,map,0); % state validity checker (collision)
 
 %% Setup start and goal/target state
 map.start = [3;1;deg2rad(90)];
-map.goal = [8;6;deg2rad(-90)];
+map.goal = [8;8;deg2rad(90)];
 
 % map.start = [5;0.5;deg2rad(0)];
 % map.goal = [13;5.0;deg2rad(45)];
@@ -51,17 +56,18 @@ nDT = size(u0,2); % Time steps
 % dynamics. This will make iterations more expensive, but
 % final convergence will be much faster (quadratic)
 full_DDP = false;
-% conFunc = @(b,u,k) constraintFunc(b,u,k);
+conFunc = @(b,u,k) constraintFunc(b,u,k);
 
-del_r = 0.05;
-conFunc = @(b,u,k) chance_constr(b,u,k,map,mm.stDim,mm.D,del_r);
+del_r = 0.01;
+% conFunc = @(b,u,k) chance_constr(b,u,k,map,mm.stDim,mm.D,del_r);
 Op.no_constr = length(map.obstacles(1,:));
 Op.phi = repmat(0.01,Op.no_constr,1);
 if strcmp(control_method, 'iLQG_AL')
     % these function is needed by iLQG_AL
     xy_cstr_bound = 0.13;
     ang_cstr_bound = 0.1 ; % temporary fix here since anonymous function call cannot return multiple values, write the x direction constraint
-    DYNCST  = @(b,u,lagMultiplier, mu,k) beliefDynCostConstr(b,u,lagMultiplier, mu,k,xf,nDT,full_DDP,mm,om,svc,conFunc,map); % For iLQG_AL
+%     DYNCST  = @(b,u,lagMultiplier, mu,k) beliefDynCostConstr(b,u,lagMultiplier, mu,k,xf,nDT,full_DDP,mm,om,svc,conFunc,map); % For iLQG_AL
+    DYNCST  = @(b,u,lagMultiplier, mu,k) beliefDynCostChConstr(b,u,lagMultiplier, mu,k,xf,nDT,full_DDP,mm,om,svc,conFunc,map); % For iLQG_AL Chance constraints
 elseif strcmp(control_method, 'iLQG')
     info_cost = 2000; % temporary fix here since anonymous function call cannot return multiple values, write the parameter of Q_t
     DYNCST  = @(b,u,i) beliefDynCost(b,u,xf,nDT,full_DDP,mm,om,svc,map); % For iLQG
@@ -87,8 +93,8 @@ scatter(xf(1),xf(2),250,'filled','MarkerFaceAlpha',1/2,'MarkerFaceColor',[0.0 1.
 legend({'Start','Goal','Mean trajectory with covariance ellipses'},'Interpreter','Latex')
 set(gcf,'name','Belief Space Planning with iLQG','NumberT','off');
 % set(gca,'Color',[0.0 0.0 0.0]);
-% set(gca,'xlim',map.bounds(1,[1,2]),'ylim',map.bounds(2,[1,2]),'zlim',map.bounds(3,[1,2]),'DataAspectRatio',[1 1 1])
- set(gca,'xlim',[0,9],'ylim',[0,10],'zlim',[0,3],'DataAspectRatio',[1 1 1])
+set(gca,'xlim',map.bounds(1,[1,2]),'ylim',map.bounds(2,[1,2]),'zlim',map.bounds(3,[1,2]),'DataAspectRatio',[1 1 1])
+%  set(gca,'xlim',[0,9],'ylim',[0,10],'zlim',[0,3],'DataAspectRatio',[1 1 1])
 xlabel('X (m)'); ylabel('Y (m)'); zlabel('Z (m)');
 box on
 

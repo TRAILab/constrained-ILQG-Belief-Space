@@ -91,6 +91,10 @@ innovation_info = H'*R_inv*H;
 P_next_inv = inv(P_prd) + innovation_info;
 P_next = inv(P_next_inv);
 
+if nnz(eigs(P_next)<0)>0
+    b
+end
+
 
 P_next = 0.5.*(P_next + P_next.');
 

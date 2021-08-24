@@ -5,13 +5,16 @@ clear all
 close all
 clc
 
-load('./Maps/3D_1.mat');
+load('./Maps/3D_many_left.mat');
 load('./Results_RAL2/quad_iLQG_2/iLQG_AL_cstr_0.13_0.1_map_3D_1.mat');
 
 om = bearingSensor(1:length(map.landmarks(1,:)),map.landmarks);
-v_alpha = 0.5;
-om.set_vis_coeffs(v_alpha);
+ks = 20;
+ds = 0.05;
+
+om.fit_vis_coeffs(ks, ds);
 x0 = [3;1;deg2rad(90)];
+om.loadFIF('FIF/FIF_3Dlmany_n20_n_0_05.mat');
 
 traj = results.b(1:3,:);
 
@@ -29,6 +32,7 @@ drawFoV(om,traj,[],3);
 
 error_FIF_avg = 0;
 error_vis_prob_avg = 0;
+error_FIF_stored_avg = 0;
 t_FIF_avg = 0;
 t_vis_prob_avg = 0;
 
@@ -48,7 +52,7 @@ for k = 1:length(traj(1,:))
     %% Compare actual and rotation invariant FIM
     true_jac = analytical_jac(vis_real==1,:);
     true_FIM = (true_jac.'*true_jac)./om.bear_var;
-    vis_real = reshape(vis_real,3,15);
+    vis_real = reshape(vis_real,3,length(vis_real)/3);
     rot_inv_FIM = zeros(3,3);
     for j = 1:length(vis_real(1,:))
         if(vis_real(1,j)) == 1
@@ -59,9 +63,11 @@ for k = 1:length(traj(1,:))
 
     %% Build one FIF voxel
     C_I = om.compute_FIM_pos(x);
+    C_I_stored = om.nearestFIF_pos(x);
     tic
     V_I = om.compute_FIM_rot(x);
     FIF_FIM = V_I*C_I;
+    FIF_stored = V_I*C_I_stored;
     t_FIF = toc;
     
     t_FIF_avg = t_FIF_avg + (t_FIF - t_FIF_avg)/k;
@@ -73,10 +79,13 @@ for k = 1:length(traj(1,:))
     t_prob_vis = toc;
     t_vis_prob_avg = t_vis_prob_avg + (t_prob_vis - t_vis_prob_avg)/k;
 
-    error_FIF = norm(true_FIM - FIF_FIM)/norm(true_FIM);
+    error_FIF = norm((true_FIM) - (FIF_FIM))/norm((true_FIM));
     error_FIF_avg = error_FIF_avg + (error_FIF - error_FIF_avg)/k;
     
-    error_vis_prob = norm(true_FIM - prob_vis_FIM)/norm(true_FIM);
+    error_FIF_stored = norm((true_FIM) - (FIF_stored))/norm((true_FIM));
+    error_FIF_stored_avg = error_FIF_stored_avg + (error_FIF_stored - error_FIF_stored_avg)/k;
+    
+    error_vis_prob = norm((true_FIM) - (prob_vis_FIM))/norm((true_FIM));
     error_vis_prob_avg = error_vis_prob_avg + (error_vis_prob - error_vis_prob_avg)/k;
     
 end

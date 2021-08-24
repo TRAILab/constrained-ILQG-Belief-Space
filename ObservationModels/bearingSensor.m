@@ -29,11 +29,14 @@ classdef bearingSensor < ObservationModelBase
         k0 = 0.5;
         k1 = 0.5;
         k2 = 0;
-        N_v = 10; %length of visibility approximation vector
+        k3 = 0;
+        k4 = 0;
+%         N_v = 10; %length of visibility approximation vector
+        N_v = 35; %length of visibility approximation vector
         
         % FIF matrix
         FIF = [];
-        ds = 0.1;
+        ds = 0.01;
         
     end
     
@@ -126,11 +129,11 @@ classdef bearingSensor < ObservationModelBase
             theta = acos(p_jc_c_norm.'*[0;0;1]);
             
             %Calculate visibility, parallax angle alpha
-            p_jk_i = -p_ji_i(1:3) + [x_rob(1:2);obj.height];
-            p_jk_i_norm = p_jk_i./norm(p_jk_i);
+            p_kj_i = -p_ji_i(1:3) + [x_rob(1:2);obj.height];
+            p_kj_i_norm = p_kj_i./norm(p_kj_i);
             e_j = [cos(th_j);sin(th_j);0];
             
-            alpha = acos(p_jk_i_norm.'*e_j);
+            alpha = acos(p_kj_i_norm.'*e_j);
             
             if theta <= obj.FoV/2 && alpha <=obj.max_alpha/2
                 isVisible = 1;
@@ -195,7 +198,15 @@ classdef bearingSensor < ObservationModelBase
             p2 = p_jc_i_norm(2);
             p3 = p_jc_i_norm(3);
             
-            v_p = [p1^2, p2^2, p3^2, p1*p2, p1*p3, p2*p3,p1,p2,p3,1].';
+%             v_p = [p1^2, p2^2, p3^2, p1*p2, p1*p3, p2*p3,p1,p2,p3,1].';
+
+            v_p = [p1^4, p1^3*p2, p1^3*p3, p1^2*p2^2, p1^2*p2*p3, ...
+                    p1^2*p3^2,p1*p2^3,p1*p2^2*p3, p1*p2*p3^2,...
+                    p1*p3^3, p2^4, p2^3*p3, p2^2*p3^2, p2*p3^3,...
+                    p3^4, p1^3, p1^2*p2, p1^2*p3, p1*p2^2, p1*p2*p3,...
+                    p1*p3^2, p2^3, p2^2*p3, p2*p3^2, p3^3,...
+                    p1^2, p1*p2, p1*p3, p2^2, p2*p3, p3^2,...
+                    p1, p2, p3, 1].';
             
             I_j_actual = compute_FIM_actual(obj, p_jc_i);
             C_I_j = blkdiag(v_p,v_p,v_p)*I_j_actual;
@@ -211,15 +222,15 @@ classdef bearingSensor < ObservationModelBase
                 p_ji_i = obj.landmarkPoses(:,j);
                 th_j = deg2rad(p_ji_i(4));
                 
-                p_jc_i = p_ci_i - p_ji_i(1:3);
-                p_jc_i_norm = p_jc_i./norm(p_jc_i);
+                p_kj_i = p_ci_i - p_ji_i(1:3);
+                p_kj_i_norm = p_kj_i./norm(p_kj_i);
                 e_j = [cos(th_j);sin(th_j);0];
-                alpha = acos(p_jc_i_norm.'*e_j);
+                alpha = acos(p_kj_i_norm.'*e_j);
                 
                 if alpha > obj.max_alpha/2
                     continue
                 else
-                    C_I = C_I + vis_pos(obj,p_jc_i);
+                    C_I = C_I + vis_pos(obj,p_ji_i(1:3) - p_ci_i);
                 end
                 
             end
@@ -239,9 +250,17 @@ classdef bearingSensor < ObservationModelBase
             z2 = z(2);
             z3 = z(3);
             
-            v_r = [obj.k2*z1^2, obj.k2*z2^2, obj.k2*z3^2, ...
-                2*obj.k2*z1*z2, 2*obj.k2*z1*z3, 2*obj.k2*z2*z3,...
-                        obj.k1*z1,obj.k1*z2,obj.k1*z3,obj.k0];
+%             v_r = [obj.k2*z1^2, obj.k2*z2^2, obj.k2*z3^2, ...
+%                 2*obj.k2*z1*z2, 2*obj.k2*z1*z3, 2*obj.k2*z2*z3,...
+%                         obj.k1*z1,obj.k1*z2,obj.k1*z3,obj.k0];
+
+            v_r = [obj.k4*z1^4, 4*obj.k4*z1^3*z2, 4*obj.k4*z1^3*z3, 6*obj.k4*z1^2*z2^2, 12*obj.k4*z1^2*z2*z3,...
+                    6*obj.k4*z1^2*z3^2, 4*obj.k4*z1*z2^3, 12*obj.k4*z1*z2^2*z3, 12*obj.k4*z1*z2*z3^2, ...
+                    4*obj.k4*z1*z3^3, obj.k4*z2^4, 4*obj.k4*z2^3*z3, 6*obj.k4*z2^2*z3^2, 4*obj.k4*z2*z3^3,...
+                    obj.k4*z3^4, obj.k3*z1^3,3*obj.k3*z1^2*z2, 3*obj.k3*z1^2*z3, 3*obj.k3*z1*z2^2, 6*obj.k3*z1*z2*z3,...
+                    3*obj.k3*z1*z3^2, obj.k3*z2^3, 3*obj.k3*z2^2*z3, 3*obj.k3*z2*z3^2, obj.k3*z3^3, ...
+                    obj.k2*z1^2, 2*obj.k2*z1*z2, 2*obj.k2*z1*z3, obj.k2*z2^2, 2*obj.k2*z2*z3, obj.k2*z3^2,...
+                    obj.k1*z1, obj.k1*z2, obj.k1*z3, obj.k0];
             
             V_I = blkdiag(v_r,v_r,v_r);
         end
@@ -335,7 +354,7 @@ classdef bearingSensor < ObservationModelBase
             vis_behind = [1,-1,1];
             val_behind = 0;
             
-            vis_FoV = [1,cos(obj.FoV),cos(obj.FoV)^2];
+            vis_FoV = [1,cos(obj.FoV/2),cos(obj.FoV/2)^2];
             val_FoV = v_FoV;
             
             A = [vis_0;vis_behind;vis_FoV];
@@ -345,6 +364,24 @@ classdef bearingSensor < ObservationModelBase
             obj.k0 = coeffs(1);
             obj.k1 = coeffs(2);
             obj.k2 = coeffs(3);
+            
+        end
+        
+        function fit_vis_coeffs(obj, ks, ds)
+            obj.ds = ds;
+            th = linspace(-pi,pi,100);
+            y = 1./(1 + exp(-ks.*(cos(th) - cos(obj.FoV/2))));
+%             plot(rad2deg(th),y);
+%             hold on;
+
+            modelfunc = @(A,x) A.'*[ones(1,length(x)); cos(x); (cos(x)).^2; cos(x).^3;cos(x).^4];
+            beta0 = [-1.2321;0.5;1.7321;0;0];
+            beta = nlinfit(th,y,modelfunc,beta0);
+            obj.k0 = beta(1);
+            obj.k1 = beta(2);
+            obj.k2 = beta(3);
+            obj.k3 = beta(4);
+            obj.k4 = beta(5);
             
         end
         

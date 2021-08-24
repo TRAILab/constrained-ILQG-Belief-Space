@@ -23,13 +23,18 @@ function constr_values = chance_constr(b,u,k,map,stDim, D, del_r)
     r_ko_mean = x(1:2) - obs;
     dist_mean = vecnorm(r_ko_mean);
     a_ko = r_ko_mean./dist_mean;
-    cov_normal = zeros(J,1);
+    var_normal = zeros(J,1);
     
     for j = 1:J
-        cov_normal(j) = sqrt(2*a_ko(:,j).'*P*a_ko(:,j));
+        cov_normal_j = 2*a_ko(:,j).'*P*a_ko(:,j);
+        if cov_normal_j<0
+            var_normal(j) = sqrt(2*max(diag(P)));
+        else
+            var_normal(j) = sqrt(cov_normal_j);
+        end
     end
     
-    constr_values = repmat(r_k,J,1) + (sqrt(2)/2).*map.obstacle_sizes.' + erfinv(1 - 2*del_r).*cov_normal - dist_mean.';
+    constr_values = repmat(r_k,J,1) + (sqrt(2)/2).*map.obstacle_sizes.' + erfinv(1 - 2*del_r).*var_normal - dist_mean.';
     
     
 end

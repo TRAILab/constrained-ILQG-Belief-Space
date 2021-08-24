@@ -85,6 +85,7 @@ P_prd = A*P*A' + G*Q*G';
 
 % Get measurement innovation from FIF
 
+% C_I_nearest = obsModel.compute_FIM_pos(x_next);
 C_I_nearest = obsModel.nearestFIF_pos(x_next);
 V_I = obsModel.compute_FIM_rot(x_next);
 innovation_info = V_I*C_I_nearest;
@@ -101,6 +102,10 @@ innovation_info = V_I*C_I_nearest;
 P_next_inv = inv(P_prd) + innovation_info;
 P_next = inv(P_next_inv);
 P_next = 0.5.*(P_next + P_next.');
+
+if(any(eigs(P_next)<0)==1)
+    P_next = P_prd;
+end
 
 
 g_b_u = zeros(size(b));

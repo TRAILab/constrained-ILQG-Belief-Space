@@ -20,7 +20,7 @@ NUM_SIMS = 1;
 
 % which map to use
 
-fname = '3D_1';
+fname = '3D_many_left';
 
 % create full path to map name
 mapFilePath = strcat('./Maps/',fname,'.mat');
@@ -48,7 +48,7 @@ end
 
 % path to where data is written
 outDatPath = strcat(baseDirectory, envSettingFolderName, '/');
-trainPath = strcat('./Results_test/', envSettingFolderName, '/');
+trainPath = strcat('./Results_FIFTest/', envSettingFolderName, '/');
 
 % Create new directory
 if CREATE_OUTPUT_DIRECTORY

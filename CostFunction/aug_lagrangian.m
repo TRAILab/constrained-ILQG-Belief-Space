@@ -98,60 +98,50 @@ function cost = evaluateCost(b, u, lagMultiplier, mu, goal,  stDim, L, stateVali
 
     % control cost
     uc = 0;
+    
+    % penalty cost
+    pc = 0;
 
     % final cost
     if any(final)
 
       sc = delta_x'*Q_l*delta_x;
 
-      pc = penalty_func(b, 0, lagMultiplier, mu, k,conFunc);
+%       pc = penalty_func(b, 0, lagMultiplier, mu, k,conFunc);
 
     else
 
       uc = u'*R_t*u;
 
-      if k == 1
-          pc = 0;
-      else
-          pc = penalty_func(b, u, lagMultiplier, mu, k, conFunc);
-      end
-
     end
-      % if extra arg is 1, get collision cost or if no extra arg, default behaviour
-    % if ~isempty(varargin)
-    %   if varargin{1} == 1
-    %     nSigma = sigmaToCollide(b,stDim,stateValidityChecker);
-    % %     nSigma = sigmaToCollide2(b,stDim,map);
-    % 
-    %     cc = -log(chi2cdf(nSigma^2, stDim-1));     
-    %   end
-    % else
-    %   nSigma = sigmaToCollide(b,stDim,stateValidityChecker);
-    % %     nSigma = sigmaToCollide2(b,stDim,map);
-    %   cc = -log(chi2cdf(nSigma^2, stDim-1));      
-    % end
-
+    
+% if extra arg is 1, get penalty cost only or if no extra arg, default behaviour
     if ~isempty(varargin)
       if varargin{1} == 1
-        nSigma = sigmaToCollide2(b,stDim,D,map);
-    %     cc = sum(exp(-nSigma));
-%         nSigma = sigmaToCollide(b,stDim,D,stateValidityChecker);
-        cc = exp(-nSigma);   
-%     cc = -log(chi2cdf(nSigma^2, stDim-1));
-
+%         nSigma = sigmaToCollide2(b,stDim,D,map);
+%         cc = exp(-nSigma);   
+        if k == 1
+            pc = 0;
+        else
+            pc = penalty_func(b, u, lagMultiplier, mu, k, conFunc);
+        end
+        cost = pc;
+        return
       end
+          
     else
-      nSigma = sigmaToCollide2(b,stDim,D,map);
-    %   cc = sum(exp(-nSigma));
-%         nSigma = sigmaToCollide(b,stDim,D,stateValidityChecker);
-        cc = exp(-nSigma);
-%     cc = -log(chi2cdf(nSigma^2, stDim-1));
+%         nSigma = sigmaToCollide2(b,stDim,D,map);
+%         cc = exp(-nSigma);
+        
+        if k == 1
+            pc = 0;
+        else
+            pc = penalty_func(b, u, lagMultiplier, mu, k, conFunc);
+        end
     end
 
-
-
-    cost = sc + uc + 350*w_cc*cc + pc;
-%     cost = sc + uc + pc;
+%     cost = sc + uc + 350*w_cc*cc + pc;
+    cost = sc + uc + pc;
 
 end
 
